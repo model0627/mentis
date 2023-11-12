@@ -14,14 +14,17 @@ runtimes:
     - python@3.10.8
 lint:
   enabled:
-    - checkov@3.0.19
-    - eslint@8.52.0
+    - checkov@3.0.22
+    - eslint@8.53.0
     - git-diff-check
     - markdownlint@0.37.0
     - osv-scanner@1.4.3
+    - oxipng@9.0.0
     - prettier@3.0.3
     - svgo@3.0.2
+    - trivy@0.47.0
     - trufflehog@3.62.1
+    - yamllint@1.32.0
 actions:
   disabled:
     - trunk-announce
