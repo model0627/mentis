@@ -51,6 +51,11 @@ npx shadcn-ui@latest add skeleton
 npx shadcn-ui@latest add popover
 npx shadcn-ui@latest add input
 npx shadcn-ui@latest add alert-dialog
+npm i zustand
+npx shadcn-ui@latest add command
+npx shadcn-ui@latest add label
+npm i emoji-picker-react
+npm i react-textarea-autosize
 
 https://dashboard.convex.dev/t/model0627/notion-clone-41637/lovable-basilisk-278/data
 https://dashboard.clerk.com/apps/app_2XkGcI1xRUmLo5vbVyzedOxNc3O/instances/ins_2XkGcRbNcGCNIhE7ToHo9B5IP3D```

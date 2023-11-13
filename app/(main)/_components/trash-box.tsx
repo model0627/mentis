@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { Spinner } from "@/components/spinner";
 import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
@@ -24,7 +25,7 @@ export const TrashBox = () => {
     });
 
     const onClick = (documentId: string) => {
-        router.push('/documents/${documentId}');
+        router.push(`/documents/${documentId}`);
     };
 
     const onRestore = (
@@ -43,16 +44,16 @@ export const TrashBox = () => {
     const onRemove = (
         documentId: Id<"documents">
     ) => {
-        const promise = restore({ id: documentId });
+        const promise = remove({ id: documentId });
 
         toast.promise(promise, {
             loading: "Restoring note...",
-            success: "Note restored!",
+            success: "Note delelted!",
             error: "Failed to restore note."
         });
 
         if (params.documentId === documentId) {
-            router.push(`/documents`);
+            router.push("/documents");
         }
     };
 
@@ -93,16 +94,18 @@ export const TrashBox = () => {
                             <div
                                 onClick={(e) => onRestore(e, document._id)}
                                 role="button"
-                                className="rounded-sm p-2 hover:bg-neutral-200"
+                                className="rounded-sm p-2 hover:bg-neutral-200 dark:hover:bg-neutral-600"
                             >
                                 <Undo className="h-4 w-4 text-muted-foreground" />
                             </div>
+                            <ConfirmModal onConfirm={() => onRemove(document._id)}>
                             <div
                                 role="button"
-                                className="rounded-sm p-2 hover:bg-neutral-200"
+                                className="rounded-sm p-2 hover:bg-neutral-200 dark:hover:bg-neutral-600"
                             >
                                 <Trash className="h-4 w-4 text-muted-foreground" />
                             </div>
+                            </ConfirmModal>
                         </div>           
                     </div>
                 ))}
