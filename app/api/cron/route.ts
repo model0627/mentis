@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     const result = await fetch(
-      'https://api.exchangerate.host/convert?from=USD&to=EUR',
+      'http://api.exchangerate.host/convert?from=USD&to=EUR',
     );
     const data = await result.json();
  
