@@ -4,7 +4,7 @@
         "schedule": "5 16 * * *"
     },
     {
-        "path": "/api/cron/route",
+        "path": "/api/cron",
         "schedule": "5 16 * * *"
     }
 ]

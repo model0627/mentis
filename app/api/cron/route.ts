@@ -1,9 +1,31 @@
-import { api } from "@/convex/_generated/api";
-
-export async function GET(request: Request) {
-    // const archive = useMutation(api.documents.archive);
-    const cron = "Hello Cron"
-    console.log(cron);
-
-    return new Response("Hello, Cron")
+import { NextResponse } from 'next/server';
+ 
+export async function GET() {
+  try {
+    const result = await fetch(
+      'https://api.exchangerate.host/convert?from=USD&to=EUR',
+    );
+    const data = await result.json();
+ 
+    if (data.success) {
+      const rate = data.info.rate;
+      console.log(`Latest exchange rate (USD to EUR): ${rate}`);
+      return NextResponse.json(
+        { message: `Exchange rate (USD to EUR) is ${rate}` },
+        { status: 200 },
+      );
+    } else {
+      console.error('Error fetching exchange rate:', data);
+      return NextResponse.json(
+        { error: 'Failed to fetch exchange rate' },
+        { status: 500 },
+      );
+    }
+  } catch (error) {
+    console.error('Error fetching exchange rate:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch exchange rate' },
+      { status: 500 },
+    );
+  }
 }
