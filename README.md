@@ -59,3 +59,7 @@ npm i react-textarea-autosize
 
 https://dashboard.convex.dev/t/model0627/notion-clone-41637/lovable-basilisk-278/data
 https://dashboard.clerk.com/apps/app_2XkGcI1xRUmLo5vbVyzedOxNc3O/instances/ins_2XkGcRbNcGCNIhE7ToHo9B5IP3D```
+
+##start
+npx convex dev
+npm run dev

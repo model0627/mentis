@@ -3,10 +3,8 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 
-export async function GET() {
+export async function GET(request: Request) {
     // const archive = useMutation(api.documents.archive);
-    const cron = "Hello Cron"
-    console.log(cron);
 
-    return NextResponse.json({ok : true});
+    return new Response("Hello, Cron")
 }
