@@ -532,8 +532,8 @@ import { cn } from "@/lib/utils"
 │                                                 │
 │  ┌─────────────┐  ┌──────────┐  ┌────────────┐ │
 │  │   postgres   │  │   yjs    │  │    app     │ │
-│  │  :5432      │  │  :1234   │  │  :3000     │ │
-│  │             │  │          │  │  (→ :8000) │ │
+│  │  :5432      │  │  :1234   │  │  :8000     │ │
+│  │             │  │          │  │            │ │
 │  │ PG 16       │  │ y-ws     │  │ Next.js    │ │
 │  │ Alpine      │  │ server   │  │ Standalone │ │
 │  │             │  │          │  │            │ │
@@ -552,7 +552,7 @@ import { cn } from "@/lib/utils"
 |--------|-------|------|------|------|
 | `postgres` | postgres:16-alpine | 5432 (내부) | pgdata | 메인 데이터베이스 |
 | `yjs` | 커스텀 (Dockerfile.yjs) | 1234 | - | 실시간 협업 WebSocket |
-| `app` | 커스텀 (Dockerfile) | 8000→3000 | uploads | Next.js 앱 |
+| `app` | 커스텀 (Dockerfile) | 8000 | uploads | Next.js 앱 |
 
 ### 환경 변수
 

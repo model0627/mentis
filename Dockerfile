@@ -26,7 +26,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/scripts/migrate.mjs ./scripts/mig
 RUN mkdir -p /app/public/uploads && chown nextjs:nodejs /app/public/uploads
 
 USER nextjs
-EXPOSE 3000
-ENV PORT=3000
+EXPOSE 8000
+ENV PORT=8000
 ENV HOSTNAME="0.0.0.0"
 CMD ["sh", "-c", "node scripts/migrate.mjs && node server.js"]

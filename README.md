@@ -168,7 +168,7 @@ mentis/
 
 | 서비스 | 포트 | 설명 |
 |--------|------|------|
-| `app` | 8000 → 3000 | Next.js 앱 (standalone) |
+| `app` | 8000 | Next.js 앱 (standalone) |
 | `postgres` | 5432 (내부) | PostgreSQL 16 Alpine |
 | `yjs` | 1234 | Yjs WebSocket 서버 |
 
