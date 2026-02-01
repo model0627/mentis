@@ -1,70 +1,160 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Mentis
 
-## Getting Started
+Notion 스타일의 실시간 협업 문서 편집기. Next.js 14 App Router, BlockNote 에디터, Yjs CRDT 기반 동시 편집을 지원합니다.
 
-First, run the development server:
+## 주요 기능
+
+- **계층형 문서 관리** - 무한 깊이의 부모-자식 트리 구조
+- **실시간 협업 편집** - Yjs + WebSocket 기반 동시 편집, 접속자 표시
+- **리치 텍스트 에디터** - BlockNote 기반 블록 에디터 (파일 업로드, 이미지, 테이블 등)
+- **문서 퍼블리싱** - 공개 URL로 문서 공유
+- **커버 이미지 & 아이콘** - 문서별 커버 이미지와 이모지 아이콘
+- **커맨드 팔레트** - `⌘+K`로 문서 빠른 검색
+- **휴지통 & 복원** - 재귀적 아카이브/복원
+- **다크 모드** - 라이트/다크 테마 전환
+- **인증** - 자체 인증 (이메일/비밀번호) + Okta SSO (선택)
+
+## 기술 스택
+
+| 영역 | 기술 |
+|------|------|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript |
+| Database | PostgreSQL 16 + Drizzle ORM |
+| Auth | NextAuth v5 (JWT) |
+| Editor | BlockNote + Yjs |
+| UI | Tailwind CSS + shadcn/ui + Radix UI |
+| State | TanStack React Query + Zustand |
+| Realtime | y-websocket (CRDT) |
+| Deploy | Docker Compose |
+
+## 시작하기
+
+### 사전 요구사항
+
+- Node.js 18+
+- PostgreSQL 16 (또는 Docker)
+- npm
+
+### 방법 1: Docker Compose (권장)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 환경 변수 설정
+cp .env.example .env
+# .env 파일을 편집하여 값을 설정
+
+# 전체 스택 실행 (postgres + yjs + app)
+docker compose up -d
+
+# http://localhost:3001 접속
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 방법 2: 로컬 개발
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# 의존성 설치
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+# 환경 변수 설정
+cp .env.example .env
+# .env 파일에 DATABASE_URL, AUTH_SECRET 등 설정
 
-## Learn More
+# DB 스키마 푸시
+npm run db:push
 
-To learn more about Next.js, take a look at the following resources:
+# Yjs WebSocket 서버 (별도 터미널)
+node scripts/yjs-server.cjs
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-
-
-#####
-```https://ui.shadcn.com/docs/dark-mode/next
-npx shadcn-ui@latest init
-npx shadcn-ui@latest add button
-npm install next-themes
-npx shadcn-ui@latest add dropdown-menu
-npm install convex
-npm install @clerk/clerk-react
-npx shadcn-ui@latest add avatar
-npx shadcn-ui@latest add dropdown-menu
-npm i sonner
-npx shadcn-ui@latest add skeleton
-npx shadcn-ui@latest add popover
-npx shadcn-ui@latest add input
-npx shadcn-ui@latest add alert-dialog
-npm i zustand
-npx shadcn-ui@latest add command
-npx shadcn-ui@latest add label
-npm i emoji-picker-react
-npm i react-textarea-autosize
-npm install @edgestore/server @edgestore/react zod
-npm install tailwind-merge react-dropzone lucide-react
-npm i @blocknote/react @blocknote/core
-
-## reference
-https://dashboard.edgestore.dev/
-https://dashboard.convex.dev/t/model0627/notion-clone-41637/lovable-basilisk-278/data
-https://dashboard.clerk.com/apps/app_2XkGcI1xRUmLo5vbVyzedOxNc3O/instances/ins_2XkGcRbNcGCNIhE7ToHo9B5IP3D```
-
-##start
-npx convex dev
+# 개발 서버 실행
 npm run dev
+```
+
+[http://localhost:3000](http://localhost:3000)에서 확인할 수 있습니다.
+
+## 환경 변수
+
+`.env.example`을 참고하여 `.env` 파일을 생성합니다.
+
+```bash
+# 데이터베이스
+DATABASE_URL=postgresql://notion:notion@localhost:5432/sootion
+POSTGRES_USER=notion
+POSTGRES_PASSWORD=notion
+
+# 인증 (필수)
+AUTH_SECRET=your-random-secret-here
+
+# Okta SSO (선택)
+AUTH_OKTA_ID=
+AUTH_OKTA_SECRET=
+AUTH_OKTA_ISSUER=https://your-okta-domain.okta.com/oauth2/default
+
+# 실시간 협업 WebSocket (비워두면 자동 감지)
+NEXT_PUBLIC_YJS_WS_URL=
+```
+
+## 스크립트
+
+| 명령어 | 설명 |
+|--------|------|
+| `npm run dev` | 개발 서버 실행 |
+| `npm run build` | 프로덕션 빌드 |
+| `npm run start` | 프로덕션 서버 실행 |
+| `npm run lint` | ESLint 실행 |
+| `npm run db:generate` | Drizzle 마이그레이션 생성 |
+| `npm run db:push` | DB 스키마 푸시 |
+| `npm run db:studio` | Drizzle Studio (DB GUI) |
+
+## 프로젝트 구조
+
+```
+mentis/
+├── app/
+│   ├── (auth)/              # 로그인, 회원가입
+│   ├── (main)/              # 메인 앱 (사이드바 + 에디터)
+│   │   └── (routes)/documents/[documentId]/
+│   ├── (marketing)/         # 랜딩 페이지
+│   ├── (public)/            # 퍼블리시된 문서 프리뷰
+│   └── api/                 # API 라우트
+│       ├── documents/       #   문서 CRUD
+│       ├── upload/          #   파일 업로드
+│       └── auth/            #   NextAuth
+├── components/
+│   ├── ui/                  # shadcn/ui 컴포넌트
+│   ├── modals/              # 모달 (설정, 커버 이미지, 확인)
+│   ├── providers/           # Theme, Query, Modal 프로바이더
+│   └── editor.tsx           # BlockNote + Yjs 에디터
+├── hooks/                   # React Query 훅, Zustand 스토어
+├── lib/
+│   ├── db/                  # Drizzle ORM (schema, connection)
+│   └── api.ts               # API 클라이언트
+├── scripts/
+│   └── yjs-server.cjs       # Yjs WebSocket 서버
+├── docker-compose.yml       # Docker 오케스트레이션
+└── docs/
+    └── ARCHITECTURE.md      # 상세 아키텍처 문서
+```
+
+## 아키텍처
+
+```
+Client (Browser)
+├── React UI (shadcn/ui + Radix)
+├── React Query (서버 상태)     ──HTTP──▶  Next.js API Routes ──▶ PostgreSQL
+├── Zustand (UI 상태)                      (Drizzle ORM)
+└── BlockNote + Yjs (에디터)   ──WS────▶  Yjs WebSocket Server
+```
+
+상세 아키텍처 문서: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+## Docker 서비스
+
+| 서비스 | 포트 | 설명 |
+|--------|------|------|
+| `app` | 3001 → 3000 | Next.js 앱 (standalone) |
+| `postgres` | 5432 (내부) | PostgreSQL 16 Alpine |
+| `yjs` | 1234 | Yjs WebSocket 서버 |
+
+## 라이선스
+
+Private
