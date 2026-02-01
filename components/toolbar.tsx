@@ -1,17 +1,16 @@
 "use client";
 
-import { Doc } from "@/convex/_generated/dataModel";
+import { Document } from "@/lib/types";
 import { IconPicker } from "./icon-picker";
 import { Button } from "./ui/button";
 import { ImageIcon, Smile, X } from "lucide-react";
 import { ElementRef, useRef, useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useUpdateDocument, useRemoveIcon } from "@/hooks/use-documents";
 import TextareaAutosize from "react-textarea-autosize";
 import { useCoverImage } from "@/hooks/use-cover-image";
 
 interface ToolbarProps {
-    initialData: Doc<"documents">;
+    initialData: Document;
     preview?: boolean;
 }
 
@@ -23,8 +22,8 @@ export const Toolbar = ({
     const [isEditing, setIsEditing] = useState(false);
     const [value, setValue] = useState(initialData.title);
 
-    const update = useMutation(api.documents.update);
-    const removeIcon = useMutation(api.documents.removeIcon);
+    const updateMutation = useUpdateDocument();
+    const removeIconMutation = useRemoveIcon();
 
     const coverImage = useCoverImage();
 
@@ -42,8 +41,8 @@ export const Toolbar = ({
 
     const onInput = (value: string) => {
         setValue(value);
-        update({
-            id: initialData._id,
+        updateMutation.mutate({
+            id: initialData.id,
             title: value || "Untitled"
         });
     }
@@ -58,15 +57,13 @@ export const Toolbar = ({
     };
 
     const onIconSelect = (icon: string) => {
-        update({
-            id: initialData._id,
+        updateMutation.mutate({
+            id: initialData.id,
             icon,
         });
     };
     const onRemoveIcon = () => {
-        removeIcon({
-            id: initialData._id
-        });
+        removeIconMutation.mutate(initialData.id);
     }
 
     return (
@@ -125,12 +122,12 @@ export const Toolbar = ({
                     onKeyDown={onKeyDown}
                     value={value}
                     onChange={(e) => onInput(e.target.value)}
-                    className="text-5xl bg-transparent font-bold break-words outline-none text-[#3F3F3F] dark:text-[#CFCFCF] resize-none"
+                    className="text-5xl bg-transparent font-bold break-words outline-none text-foreground resize-none"
                 />
             ): (
                 <div
                     onClick={enableInput}
-                    className="pb-[11.5px] text-5xl font-bold break-words outline-none text-[#3F3F3F] dark:text-[#CFCFCF]"
+                    className="pb-[11.5px] text-5xl font-bold break-words outline-none text-foreground"
                 >
                     {initialData.title}
                 </div>

@@ -1,30 +1,26 @@
 import './globals.css'
-import { Inter } from 'next/font/google'
 import type { Metadata } from 'next'
 import { Toaster } from 'sonner'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { ModalProvider } from '@/components/providers/modal-provider'
-import { ConvexClientProvider } from '@/components/providers/convex-provider'
-import { EdgeStoreProvider } from '../lib/edgestore';
-
-const inter = Inter({ subsets: ['latin'] })
+import { AppProvider } from '@/components/providers/query-provider'
 
 export const metadata: Metadata = {
-  title: 'Sootion',
+  title: 'Mentis',
   description: 'The connected workspace where better, faster work happens.',
   icons: {
     icon: [
       {
-        media: "(prefers-color-scheme: light)",
-        url: "/logo.svg",
-        href: "/logo.svg",
+        url: "/favicon.svg",
+        type: "image/svg+xml",
       },
+    ],
+    apple: [
       {
-        media: "(prefers-color-scheme: dark)",
-        url: "/logo-dark.svg",
-        href: "/logo-dark.svg",
-      }
-    ]
+        url: "/logo.svg",
+        type: "image/svg+xml",
+      },
+    ],
   }
 }
 
@@ -35,16 +31,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressContentEditableWarning>
-      <body className={inter.className}>
-        <ConvexClientProvider>
-          <EdgeStoreProvider>
-            <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange storageKey='sootion-theme-2'>
+      <body>
+        <AppProvider>
+          <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange storageKey='mentis-theme-2'>
               <Toaster position='bottom-center' />
               <ModalProvider />
               {children}
             </ThemeProvider>
-          </EdgeStoreProvider>
-        </ConvexClientProvider>
+        </AppProvider>
         </body>
     </html>
   )

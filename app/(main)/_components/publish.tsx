@@ -1,40 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
 import { toast } from "sonner";
 import { Check, Copy, Globe } from "lucide-react";
 
-import { Doc } from "@/convex/_generated/dataModel";
+import { Document } from "@/lib/types";
 import {
   PopoverTrigger,
   Popover,
   PopoverContent
 } from "@/components/ui/popover"
 import { useOrigin } from "@/hooks/use-origin";
-import { api } from "@/convex/_generated/api";
+import { useUpdateDocument } from "@/hooks/use-documents";
 import { Button } from "@/components/ui/button";
 
 interface PublishProps {
-  initialData: Doc<"documents">
+  initialData: Document
 };
 
 export const Publish = ({
   initialData
 }: PublishProps) => {
   const origin = useOrigin();
-  const update = useMutation(api.documents.update);
+  const updateMutation = useUpdateDocument();
 
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const url = `${origin}/preview/${initialData._id}`;
+  const url = `${origin}/preview/${initialData.id}`;
 
   const onPublish = () => {
     setIsSubmitting(true);
 
-    const promise = update({
-      id: initialData._id,
+    const promise = updateMutation.mutateAsync({
+      id: initialData.id,
       isPublished: true,
     })
       .finally(() => setIsSubmitting(false));
@@ -49,8 +48,8 @@ export const Publish = ({
   const onUnpublish = () => {
     setIsSubmitting(true);
 
-    const promise = update({
-      id: initialData._id,
+    const promise = updateMutation.mutateAsync({
+      id: initialData.id,
       isPublished: false,
     })
       .finally(() => setIsSubmitting(false));
@@ -78,7 +77,7 @@ export const Publish = ({
           Publish 
           {initialData.isPublished && (
             <Globe
-              className="text-sky-500 w-4 h-4 ml-2"
+              className="text-informative w-4 h-4 ml-2"
             />
           )}
         </Button>
@@ -92,8 +91,8 @@ export const Publish = ({
         {initialData.isPublished ? (
           <div className="space-y-4">
             <div className="flex items-center gap-x-2">
-              <Globe className="text-sky-500 animate-pulse h-4 w-4" />
-              <p className="text-xs font-medium text-sky-500">
+              <Globe className="text-informative animate-pulse h-4 w-4" />
+              <p className="text-xs font-medium text-informative">
                 This note is live on web.
               </p>
             </div>

@@ -1,10 +1,9 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Command, File } from "lucide-react";
-import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/clerk-react";
+import { useSession } from "next-auth/react";
 
 import {
     CommandDialog,
@@ -15,12 +14,12 @@ import {
     CommandList
 } from "@/components/ui/command";
 import { useSearch } from "@/hooks/use-search";
-import { api } from "@/convex/_generated/api";
+import { useSearchDocs } from "@/hooks/use-documents";
 
 export const SearchCommand = () => {
-    const { user } = useUser();
+    const { data: session } = useSession();
     const router = useRouter();
-    const documents = useQuery(api.documents.getSearch);
+    const { data: documents } = useSearchDocs();
     const [isMounted, setIsMounted] = useState(false);
 
     const toggle = useSearch((store) => store.toggle);
@@ -52,15 +51,15 @@ export const SearchCommand = () => {
     return (
         <CommandDialog open={isOpen} onOpenChange={onClose}>
             <CommandInput
-                placeholder={`Search ${user?.fullName}'s Sootion...`}
+                placeholder={`Search ${session?.user?.name}'s Mentis...`}
             />
             <CommandList>
                 <CommandEmpty>No results found.</CommandEmpty>
                 <CommandGroup title="Documents">
                     {documents?.map((document) => (
                         <CommandItem
-                            key={document._id}
-                            value={`${document._id}-${document.title}`}
+                            key={document.id}
+                            value={`${document.id}-${document.title}`}
                             title={document.title}
                             onSelect={onSelect}
                         >

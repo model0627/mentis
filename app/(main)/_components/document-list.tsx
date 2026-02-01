@@ -1,18 +1,17 @@
 "use client";
 
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { Document } from "@/lib/types";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useSidebar } from "@/hooks/use-documents";
 import { Item } from "./item";
 import { cn } from "@/lib/utils";
 import { FileIcon } from "lucide-react";
 
 interface DocumentListProps {
-    parentDocumentId?: Id<"documents">;
+    parentDocumentId?: string;
     level?: number;
-    data?: Doc<"documents">[];
+    data?: Document[];
 }
 export const DocumentList = ({
     parentDocumentId,
@@ -29,15 +28,13 @@ export const DocumentList = ({
         }));
     };
 
-    const documents = useQuery(api.documents.getSidebar, {
-        parentDocument: parentDocumentId
-    });
+    const { data: documents, isLoading } = useSidebar(parentDocumentId);
 
     const onRedirect = (documentId: string) => {
         router.push(`/documents/${documentId}`);
     };
 
-    if (documents === undefined) {
+    if (isLoading) {
         return (
             <>
                 <Item.Skeleton level={level} />
@@ -66,21 +63,21 @@ export const DocumentList = ({
             No pages inside
         </p>
         {documents?.map((document) => (
-            <div key={document._id}>
+            <div key={document.id}>
                 <Item
-                    id={document._id}
-                    onClick={() => onRedirect(document._id)}
+                    id={document.id}
+                    onClick={() => onRedirect(document.id)}
                     label={document.title}
                     icon={FileIcon}
-                    documentIcon={document.icon}
-                    active={params.documentId === document._id}
+                    documentIcon={document.icon ?? undefined}
+                    active={params.documentId === document.id}
                     level={level}
-                    onExpand={() => onExpand(document._id)}
-                    expanded={expanded[document._id]}
+                    onExpand={() => onExpand(document.id)}
+                    expanded={expanded[document.id]}
                 />
-                {expanded[document._id] && (
+                {expanded[document.id] && (
                     <DocumentList
-                        parentDocumentId={document._id}
+                        parentDocumentId={document.id}
                         level={level + 1}
                     />    
                 )}

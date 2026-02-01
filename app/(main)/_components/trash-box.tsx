@@ -3,9 +3,7 @@
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { Spinner } from "@/components/spinner";
 import { Input } from "@/components/ui/input";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
-import { useQuery, useMutation } from "convex/react";
+import { useTrash, useRestoreDocument, useRemoveDocument } from "@/hooks/use-documents";
 import { Search, Trash, Undo } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import React, { useState } from "react";
@@ -14,9 +12,9 @@ import { toast } from "sonner";
 export const TrashBox = () => {
     const router = useRouter();
     const params = useParams();
-    const documents = useQuery(api.documents.getTrash);
-    const restore = useMutation(api.documents.restore);
-    const remove = useMutation(api.documents.remove);
+    const { data: documents, isLoading } = useTrash();
+    const restoreMutation = useRestoreDocument();
+    const removeMutation = useRemoveDocument();
 
     const [search, setSearch] = useState("");
 
@@ -30,10 +28,10 @@ export const TrashBox = () => {
 
     const onRestore = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-        documentId: Id<"documents">
+        documentId: string
     ) => {
         event.stopPropagation();
-        const promise = restore({ id: documentId });
+        const promise = restoreMutation.mutateAsync(documentId);
 
         toast.promise(promise, {
             loading: "Restoring note...",
@@ -42,9 +40,9 @@ export const TrashBox = () => {
         });
     };
     const onRemove = (
-        documentId: Id<"documents">
+        documentId: string
     ) => {
-        const promise = remove({ id: documentId });
+        const promise = removeMutation.mutateAsync(documentId);
 
         toast.promise(promise, {
             loading: "Restoring note...",
@@ -57,7 +55,7 @@ export const TrashBox = () => {
         }
     };
 
-    if (documents === undefined) {
+    if (isLoading) {
         return (
             <div className="h-full flex items-center justify-center p-4">
                 <Spinner size="lg" />
@@ -82,9 +80,9 @@ export const TrashBox = () => {
                 </p>
                 {filteredDocuments?.map((document) => (
                     <div
-                        key={document._id}
+                        key={document.id}
                         role="button"
-                        onClick={() => onClick(document._id)}
+                        onClick={() => onClick(document.id)}
                         className="text-sm rounded-sm w-full hover:bg-primary/5 flex items-center text-primary justify-between"
                     >
                         <span className="truncate pl-2">
@@ -92,16 +90,16 @@ export const TrashBox = () => {
                         </span>
                         <div className="flex items-center">
                             <div
-                                onClick={(e) => onRestore(e, document._id)}
+                                onClick={(e) => onRestore(e, document.id)}
                                 role="button"
-                                className="rounded-sm p-2 hover:bg-neutral-200 dark:hover:bg-neutral-600"
+                                className="rounded-sm p-2 hover:bg-accent"
                             >
                                 <Undo className="h-4 w-4 text-muted-foreground" />
                             </div>
-                            <ConfirmModal onConfirm={() => onRemove(document._id)}>
+                            <ConfirmModal onConfirm={() => onRemove(document.id)}>
                             <div
                                 role="button"
-                                className="rounded-sm p-2 hover:bg-neutral-200 dark:hover:bg-neutral-600"
+                                className="rounded-sm p-2 hover:bg-accent"
                             >
                                 <Trash className="h-4 w-4 text-muted-foreground" />
                             </div>

@@ -8,19 +8,16 @@ import {
 import { useCoverImage } from "@/hooks/use-cover-image";
 import { SingleImageDropzone } from "@/components/single-image-dropzone";
 import { useState } from "react";
-import { useEdgeStore } from "@/lib/edgestore";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { fileStorage } from "@/lib/upload";
 import { useParams } from "next/navigation";
-import { Id } from "@/convex/_generated/dataModel";
+import { useUpdateDocument } from "@/hooks/use-documents";
 
 export const CoverImageStore = () => {
     const params = useParams();
     const [file, setFile] = useState<File>();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const coverImage = useCoverImage();
-    const { edgestore } = useEdgeStore();
-    const update = useMutation(api.documents.update);
+    const updateMutation = useUpdateDocument();
 
     const onClose = () => {
         setFile(undefined);
@@ -32,23 +29,10 @@ export const CoverImageStore = () => {
             setIsSubmitting(true);
             setFile(file);
 
-            let res;
+            const res = await fileStorage.upload(file, coverImage.url);
 
-            if (coverImage.url) {
-                res = await edgestore.publicFiles.upload({
-                    file,
-                    options: {
-                        replaceTargetUrl: coverImage.url,
-                    }
-                })
-            } else {
-                res = await edgestore.publicFiles.upload({
-                    file
-                });
-            }
-
-            await update({
-                id: params.documentId as Id<"documents">,
+            await updateMutation.mutateAsync({
+                id: params.documentId as string,
                 coverImage: res.url
             })
 

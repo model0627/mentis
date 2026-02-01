@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sootion
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - sootion-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notion -d sootion"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  yjs:
+    build:
+      context: .
+      dockerfile: Dockerfile.yjs
+    restart: unless-stopped
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "1234"
+    ports:
+      - "1234:1234"
+    networks:
+      - sootion-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_YJS_WS_URL: ${NEXT_PUBLIC_YJS_WS_URL:-}
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_OKTA_ID: ${AUTH_OKTA_ID}
+      AUTH_OKTA_SECRET: ${AUTH_OKTA_SECRET}
+      AUTH_OKTA_ISSUER: ${AUTH_OKTA_ISSUER}
+      YJS_WS_URL: ws://yjs:1234
+    volumes:
+      - uploads:/app/public/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      yjs:
+        condition: service_started
+    networks:
+      - sootion-net
+
+networks:
+  sootion-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+  uploads:

@@ -8,17 +8,15 @@ import {
     DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
-import { useUser } from "@clerk/clerk-react";
-import { useMutation } from "convex/react";
+import { useSession } from "next-auth/react";
+import { useCreateDocument, useArchiveDocument } from "@/hooks/use-documents";
 import { ChevronDown, ChevronRight, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 interface ItemProps {
-    id?: Id<"documents">;
+    id?: string;
     documentIcon?: string;
     active?: boolean;
     expanded?: boolean;
@@ -34,17 +32,17 @@ export const Item = ({
     id, label, onClick, icon: Icon, active, documentIcon, isSearch, level = 0,
     onExpand, expanded,
 }: ItemProps) => {
-    const { user } = useUser();
+    const { data: session } = useSession();
     const router = useRouter();
-    const create = useMutation(api.documents.create);
-    const archive = useMutation(api.documents.archive);
+    const createMutation = useCreateDocument();
+    const archiveMutation = useArchiveDocument();
 
     const onArchive = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
         event.stopPropagation();
         if (!id) return;
-        const promise = archive({ id })
+        const promise = archiveMutation.mutateAsync(id)
             .then(() => router.push("/documents"));
 
         toast.promise(promise, {
@@ -66,8 +64,9 @@ export const Item = ({
     ) => {
         event.stopPropagation();
         if (!id) return;
-        const promise = create({ title: "Untitled", parentDocument: id })
-            .then((documentId) => {
+        const promise = createMutation.mutateAsync({ title: "Untitled", parentDocument: id })
+            .then((doc) => {
+                const documentId = doc.id;
                 if(!expanded) {
                     onExpand?.();
                 }
@@ -92,7 +91,7 @@ export const Item = ({
             )}
             >
             {!!id && (
-                <div role="button" className="h-full rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 mr-1"
+                <div role="button" className="h-full rounded-sm hover:bg-accent mr-1"
                     onClick={handleExpand}
                 >
                     <ChevronIcon className="h-4 w-4 shrink-0 text-muted-foreground/50" />
@@ -121,7 +120,7 @@ export const Item = ({
                             asChild
                         >
                             <div role="button"
-                                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600"
+                                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-accent"
                             >
                                 <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                             </div>
@@ -138,14 +137,14 @@ export const Item = ({
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <div className="text-xs text-muted-foreground p-2">
-                                Last edited by: {user?.fullName}
+                                Last edited by: {session?.user?.name}
                             </div>
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <div
                         role="button"
                         onClick={onCreate} 
-                        className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600">
+                        className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-accent">
                         <Plus className="h-4 w-4 text-muted-foreground" />
                     </div>
                 </div>

@@ -1,25 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
-import { useMutation } from "convex/react";
+import { useRemoveDocument, useRestoreDocument } from "@/hooks/use-documents";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 interface BannerProps {
-    documentId: Id<"documents">;
+    documentId: string;
 }
 
 export const Banner = ({
     documentId
 }: BannerProps) => {
     const router = useRouter();
-    const remove = useMutation(api.documents.remove);
-    const restore = useMutation(api.documents.restore);
+    const removeMutation = useRemoveDocument();
+    const restoreMutation = useRestoreDocument();
 
     const onRemove = () => {
-        const promise = remove({ id: documentId })
+        const promise = removeMutation.mutateAsync(documentId)
 
         toast.promise(promise, {
             loading: "Deleting note...",
@@ -30,7 +28,7 @@ export const Banner = ({
         router.push("/documents");
     }
     const onRestore = () => {
-        const promise = restore({ id: documentId });
+        const promise = restoreMutation.mutateAsync(documentId);
 
         toast.promise(promise, {
             loading: "Restoring note...",
@@ -40,7 +38,7 @@ export const Banner = ({
     }
 
     return (
-        <div className="w-full bg-rose-500 text-center text-sm p-2 text-white flex items-center gap-x-2 justify-center">
+        <div className="w-full bg-destructive text-center text-sm p-2 text-white flex items-center gap-x-2 justify-center">
             <p>
                 This page is in the Trash
             </p>

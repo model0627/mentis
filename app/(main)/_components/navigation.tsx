@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { api } from "@/convex/_generated/api";
+import { useCreateDocument } from "@/hooks/use-documents";
 import {
     Popover,
     PopoverTrigger,
@@ -14,7 +14,6 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { UserItem } from "./user-item";
-import { useMutation, useQuery } from "convex/react";
 import { Item } from "./item";
 import { toast } from "sonner";
 import { DocumentList } from "./document-list";
@@ -28,8 +27,7 @@ export const Navigation = () => {
     const params = useParams();
     const pathname = usePathname();
     const isMobile = useMediaQuery("(max-width: 768px)");
-    // const documents = useQuery(api.documents.get);
-    const create = useMutation(api.documents.create);
+    const createMutation = useCreateDocument();
 
     const isResizingRef = useRef(false);
     const sidebarRef = useRef<ElementRef<"aside">>(null);
@@ -102,8 +100,8 @@ export const Navigation = () => {
     }
 
     const handleCreate = () => {
-        const promise = create({ title: "Untitled" })
-            .then((documentId) => router.push(`/documents/${documentId}`))
+        const promise = createMutation.mutateAsync({ title: "Untitled" })
+            .then((doc) => router.push(`/documents/${doc.id}`))
 
         toast.promise(promise, {
             loading: "Creating a new note...",
@@ -126,7 +124,7 @@ export const Navigation = () => {
                     onClick={collapse}
                     role="button"
                     className={cn(
-                        "h-6 w-6 text-muted-foreground rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 transition",
+                        "h-6 w-6 text-muted-foreground rounded-sm hover:bg-accent absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 transition",
                         isMobile && "opacity-100"
                     )}
                 >
@@ -160,7 +158,7 @@ export const Navigation = () => {
                 <div
                     onMouseDown={handleMouseDown}
                     onClick={resetWidth}
-                    className="opacity-0 group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-full w-1 bg-primary/10 right-0 top-0"
+                    className="opacity-0 group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-full w-1 bg-foreground/10 right-0 top-0"
                 />
             </aside>
             <div

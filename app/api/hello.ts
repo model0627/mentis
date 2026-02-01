@@ -1,6 +1,3 @@
-import { NextRequest, NextResponse } from "next/server";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { NextApiRequest, NextApiResponse } from "next";
 
 type Data = {

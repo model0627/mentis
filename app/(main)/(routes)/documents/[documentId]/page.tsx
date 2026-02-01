@@ -1,19 +1,16 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import { useDocument, useUpdateDocument } from "@/hooks/use-documents";
 import { Toolbar } from "@/components/toolbar";
 import { Cover } from "@/components/cover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Editor } from "@/components/editor";
-import { useMemo } from "react";
+import { useMemo, useCallback, useRef } from "react";
+import { useSession } from "next-auth/react";
 
 interface DocumentIdPageProps {
     params: {
-        documentId: Id<"documents">;
+        documentId: string;
     };
 };
 
@@ -21,20 +18,22 @@ const DocumentIdPage = ({
     params
 }: DocumentIdPageProps) => {
     const Editor = useMemo(() => dynamic(() => import("@/components/editor"), { ssr: false } ), [])
-    const document = useQuery(api.documents.getById, {
-        documentId: params.documentId
-    });
+    const { data: document, isLoading } = useDocument(params.documentId);
+    const updateMutation = useUpdateDocument();
+    const { data: session } = useSession();
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-    const update = useMutation(api.documents.update);
+    const onChange = useCallback((content: string) => {
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+            updateMutation.mutate({
+                id: params.documentId,
+                content
+            });
+        }, 2000);
+    }, [params.documentId, updateMutation]);
 
-    const onChange = (content: string) => {
-        update({
-            id: params.documentId,
-            content
-        });
-    };
-
-    if (document === undefined) {
+    if (isLoading) {
         return (
             <div>
                 <Cover.Skeleton />
@@ -50,7 +49,7 @@ const DocumentIdPage = ({
         )
     }
 
-    if (document === null) {
+    if (!document) {
         return (
             <div>
                 Not found
@@ -58,16 +57,17 @@ const DocumentIdPage = ({
         )
     }
 
-
     return (
         <div className="pb-40">
-            <Cover url={document.coverImage} />
+            <Cover url={document.coverImage ?? undefined} />
             <div className="h-[35vh]" />
             <div className="md:max-w-3xl lg:md-max-w-4xl mx-auto">
                 <Toolbar initialData={document} />
                 <Editor
                     onChange={onChange}
-                    initialContent={document.content}
+                    initialContent={document.content ?? undefined}
+                    documentId={params.documentId}
+                    userName={session?.user?.name || undefined}
                 />
             </div>
         </div>
