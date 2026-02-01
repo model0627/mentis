@@ -32,44 +32,25 @@ Notion 스타일의 실시간 협업 문서 편집기. Next.js 14 App Router, Bl
 
 ### 사전 요구사항
 
-- Node.js 18+
-- PostgreSQL 16 (또는 Docker)
-- npm
+- Docker & Docker Compose
 
-### 방법 1: Docker Compose (권장)
+### 실행
 
 ```bash
-# 환경 변수 설정
+# 1. 환경 변수 설정
 cp .env.example .env
-# .env 파일을 편집하여 값을 설정
+# .env 파일을 편집하여 AUTH_SECRET 등 값을 설정
 
-# 전체 스택 실행 (postgres + yjs + app)
+# 2. 전체 스택 실행 (postgres + yjs + app)
 docker compose up -d
+
+# 3. 최초 실행 시 DB 마이그레이션
+docker compose exec app node scripts/migrate.mjs
 
 # http://localhost:3001 접속
 ```
 
-### 방법 2: 로컬 개발
-
-```bash
-# 의존성 설치
-npm install
-
-# 환경 변수 설정
-cp .env.example .env
-# .env 파일에 DATABASE_URL, AUTH_SECRET 등 설정
-
-# DB 스키마 푸시
-npm run db:push
-
-# Yjs WebSocket 서버 (별도 터미널)
-node scripts/yjs-server.cjs
-
-# 개발 서버 실행
-npm run dev
-```
-
-[http://localhost:3000](http://localhost:3000)에서 확인할 수 있습니다.
+> **참고**: 마이그레이션은 최초 1회만 실행하면 됩니다. `CREATE TABLE IF NOT EXISTS`를 사용하므로 중복 실행해도 안전합니다.
 
 ## 환경 변수
 
