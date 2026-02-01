@@ -21,7 +21,7 @@
 
 ## 프로젝트 개요
 
-Mentis는 Next.js 14 App Router 기반의 Notion 클론 프로젝트로, 실시간 협업 편집, 계층형 문서 관리, 문서 퍼블리싱 기능을 제공합니다. Seed Design System(당근 디자인 시스템)을 적용하여 일관된 UI를 구현합니다.
+Mentis는 Next.js 14 App Router 기반의 Notion 클론 프로젝트로, 실시간 협업 편집, 계층형 문서 관리, 문서 퍼블리싱 기능을 제공합니다.
 
 ### 핵심 기능
 
@@ -507,49 +507,11 @@ shadcn/ui 기반 Radix 프리미티브:
 
 ## 스타일링 시스템
 
-### Seed Design System 토큰
+### 구성
 
-Tailwind CSS를 확장하여 Seed Design System(당근) 디자인 토큰을 적용합니다.
-
-#### 색상 (Color Tokens)
-
-```css
-/* 브랜드 컬러 */
---seed-brand: hsl(24, 100%, 50%)        /* 오렌지 */
---seed-brand-hover: hsl(24, 100%, 45%)
-
-/* 시맨틱 컬러 */
---seed-informative: hsl(213, 97%, 56%)   /* 블루 */
---seed-positive: hsl(145, 65%, 42%)      /* 그린 */
---seed-warning: hsl(24, 100%, 50%)       /* 오렌지 */
-
-/* 다크 모드에서는 warm gray 계열로 전환 */
---background: 220 20% 10%
---foreground: 220 15% 95%
-```
-
-#### 레이아웃 토큰
-
-```css
-/* Border Radius */
---seed-r1: 4px   --seed-r2: 8px
---seed-r3: 12px  --seed-r4: 16px
-
-/* Shadows */
---seed-s1: 0 1px 2px rgba(0,0,0,0.05)    /* 미묘 */
---seed-s2: 0 4px 6px rgba(0,0,0,0.07)    /* 기본 */
---seed-s3: 0 10px 15px rgba(0,0,0,0.1)   /* 강조 */
-```
-
-#### 타이포그래피
-
-```
-Font Stack: Pretendard, Roboto, "Noto Sans KR", system-ui, sans-serif
-```
-
-### cn() 유틸리티
-
-`clsx` + `tailwind-merge`를 결합한 클래스 병합 유틸리티:
+- **Tailwind CSS 3.3** - 유틸리티 기반 스타일링 + 커스텀 디자인 토큰
+- **다크 모드** - next-themes, class 전략, localStorage 저장
+- **cn() 유틸리티** - `clsx` + `tailwind-merge` 클래스 병합
 
 ```typescript
 import { cn } from "@/lib/utils"
@@ -571,7 +533,7 @@ import { cn } from "@/lib/utils"
 │  ┌─────────────┐  ┌──────────┐  ┌────────────┐ │
 │  │   postgres   │  │   yjs    │  │    app     │ │
 │  │  :5432      │  │  :1234   │  │  :3000     │ │
-│  │             │  │          │  │  (→ :3001) │ │
+│  │             │  │          │  │  (→ :8000) │ │
 │  │ PG 16       │  │ y-ws     │  │ Next.js    │ │
 │  │ Alpine      │  │ server   │  │ Standalone │ │
 │  │             │  │          │  │            │ │
@@ -590,7 +552,7 @@ import { cn } from "@/lib/utils"
 |--------|-------|------|------|------|
 | `postgres` | postgres:16-alpine | 5432 (내부) | pgdata | 메인 데이터베이스 |
 | `yjs` | 커스텀 (Dockerfile.yjs) | 1234 | - | 실시간 협업 WebSocket |
-| `app` | 커스텀 (Dockerfile) | 3001→3000 | uploads | Next.js 앱 |
+| `app` | 커스텀 (Dockerfile) | 8000→3000 | uploads | Next.js 앱 |
 
 ### 환경 변수
 

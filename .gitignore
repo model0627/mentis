@@ -19,6 +19,9 @@
 # uploads
 /public/uploads
 
+# claude code
+.claude/
+
 # misc
 .DS_Store
 *.pem

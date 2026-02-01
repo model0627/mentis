@@ -47,7 +47,7 @@ docker compose up -d
 # 3. 최초 실행 시 DB 마이그레이션
 docker compose exec app node scripts/migrate.mjs
 
-# http://localhost:3001 접속
+# http://localhost:8000 접속
 ```
 
 > **참고**: 마이그레이션은 최초 1회만 실행하면 됩니다. `CREATE TABLE IF NOT EXISTS`를 사용하므로 중복 실행해도 안전합니다.
@@ -116,15 +116,51 @@ mentis/
     └── ARCHITECTURE.md      # 상세 아키텍처 문서
 ```
 
-## 아키텍처
+## 시스템 아키텍처
 
 ```
-Client (Browser)
-├── React UI (shadcn/ui + Radix)
-├── React Query (서버 상태)     ──HTTP──▶  Next.js API Routes ──▶ PostgreSQL
-├── Zustand (UI 상태)                      (Drizzle ORM)
-└── BlockNote + Yjs (에디터)   ──WS────▶  Yjs WebSocket Server
+┌─────────────────────────────────────────────────────────┐
+│                     Client (Browser)                     │
+│                                                         │
+│  ┌──────────┐  ┌───────────┐  ┌──────────────────────┐ │
+│  │ React UI │  │ React     │  │ BlockNote Editor     │ │
+│  │ (Radix/  │  │ Query     │  │ + Yjs Provider       │ │
+│  │  shadcn) │  │ (Server   │  │ (CRDT Sync)          │ │
+│  │          │  │  State)   │  │                      │ │
+│  └────┬─────┘  └─────┬─────┘  └──────────┬───────────┘ │
+│       │              │                    │             │
+│  ┌────┴──────────────┴────┐    ┌─────────┴──────────┐  │
+│  │ Zustand (Client State) │    │ y-websocket Client │  │
+│  └────────────────────────┘    └─────────┬──────────┘  │
+└──────────────────────┬───────────────────┬──────────────┘
+                       │ HTTP/REST         │ WebSocket
+                       ▼                   ▼
+┌──────────────────────────────┐  ┌──────────────────┐
+│   Next.js API Routes         │  │  Yjs WebSocket   │
+│   (Serverless Functions)     │  │  Server (:1234)  │
+│                              │  │                  │
+│  ┌────────────┐ ┌─────────┐ │  │  Real-time doc   │
+│  │ NextAuth   │ │ Drizzle │ │  │  synchronization │
+│  │ (JWT Auth) │ │ ORM     │ │  │  + presence      │
+│  └────────────┘ └────┬────┘ │  └──────────────────┘
+│                      │      │
+└──────────────────────┼──────┘
+                       │
+                       ▼
+              ┌─────────────────┐
+              │  PostgreSQL 16  │
+              │                 │
+              │  users          │
+              │  documents      │
+              └─────────────────┘
 ```
+
+### 데이터 흐름
+
+1. **문서 CRUD**: Client → React Query → API Routes → Drizzle ORM → PostgreSQL
+2. **실시간 편집**: Client → y-websocket → Yjs WebSocket Server → 다른 클라이언트로 브로드캐스트
+3. **인증**: Client → NextAuth → JWT 토큰 → Middleware 검증
+4. **파일 업로드**: Client → `/api/upload` → 로컬 파일시스템 (`/public/uploads/`)
 
 상세 아키텍처 문서: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
@@ -132,7 +168,7 @@ Client (Browser)
 
 | 서비스 | 포트 | 설명 |
 |--------|------|------|
-| `app` | 3001 → 3000 | Next.js 앱 (standalone) |
+| `app` | 8000 → 3000 | Next.js 앱 (standalone) |
 | `postgres` | 5432 (내부) | PostgreSQL 16 Alpine |
 | `yjs` | 1234 | Yjs WebSocket 서버 |
 
