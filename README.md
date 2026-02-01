@@ -2,6 +2,16 @@
 
 Notion 스타일의 실시간 협업 문서 편집기. Next.js 16 App Router, BlockNote 에디터, Yjs CRDT 기반 동시 편집을 지원합니다.
 
+## Screenshots
+
+| Landing | Editor (Real-time Collaboration) |
+|---------|----------------------------------|
+| ![Landing](docs/screenshots/01-landing.png) | ![Editor](docs/screenshots/04-editor.png) |
+
+| Register | Login |
+|----------|-------|
+| ![Register](docs/screenshots/02-register.png) | ![Login](docs/screenshots/03-login.png) |
+
 ## 주요 기능
 
 - **계층형 문서 관리** - 무한 깊이의 부모-자식 트리 구조, 브레드크럼 네비게이션
