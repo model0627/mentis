@@ -608,31 +608,24 @@ AUTH_OKTA_ISSUER=<okta-issuer-url>    # (선택) Okta OAuth
 NEXT_PUBLIC_YJS_WS_URL=               # 비어있으면 자동 감지
 ```
 
-### 개발 환경 실행
+### 실행
 
 ```bash
-# 의존성 설치
-npm install
+# 1. 환경 변수 설정
+cp .env.example .env
+# .env 파일을 편집하여 AUTH_SECRET 등 값을 설정
 
-# DB 스키마 푸시
-npm run db:push
-
-# 개발 서버
-npm run dev
-
-# (별도 터미널) Yjs WebSocket 서버
-node scripts/yjs-server.cjs
-```
-
-### 프로덕션 배포
-
-```bash
-# Docker Compose로 전체 스택 실행
+# 2. 전체 스택 실행 (postgres + yjs + app)
 docker compose up -d
+
+# 3. 최초 실행 시 DB 마이그레이션
+docker compose exec app node scripts/migrate.mjs
 
 # 빌드 확인
 docker compose logs -f app
 ```
+
+> **참고**: 마이그레이션은 최초 1회만 실행하면 됩니다. `CREATE TABLE IF NOT EXISTS`를 사용하므로 중복 실행해도 안전합니다.
 
 ---
 
