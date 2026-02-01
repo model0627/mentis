@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { documents } from "@/lib/db/schema";
 import { eq, and, isNull, desc } from "drizzle-orm";
 
-// GET /api/documents/sidebar?parentDocument=xxx
+// GET /api/documents/sidebar?parentDocument=xxx&workspace=shared|private
 export async function GET(req: NextRequest) {
   const session = await auth();
   const userId = session?.user?.id;
@@ -14,11 +14,18 @@ export async function GET(req: NextRequest) {
   }
 
   const parentDocument = req.nextUrl.searchParams.get("parentDocument");
+  const workspace = req.nextUrl.searchParams.get("workspace") || "private";
 
   const conditions = [
-    eq(documents.userId, userId),
     eq(documents.isArchived, false),
   ];
+
+  if (workspace === "shared") {
+    conditions.push(eq(documents.workspace, "shared"));
+  } else {
+    conditions.push(eq(documents.workspace, "private"));
+    conditions.push(eq(documents.userId, userId));
+  }
 
   if (parentDocument) {
     conditions.push(eq(documents.parentDocument, parentDocument));

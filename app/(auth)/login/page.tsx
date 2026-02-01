@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const LoginPage = () => {
+const LoginForm = () => {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/documents";
   const [email, setEmail] = useState("");
@@ -106,6 +106,14 @@ const LoginPage = () => {
         </Link>
       </p>
     </div>
+  );
+};
+
+const LoginPage = () => {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 };
 

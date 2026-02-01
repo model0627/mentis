@@ -7,9 +7,9 @@ const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { filename: string } }
+  { params }: { params: Promise<{ filename: string }> }
 ) {
-  const filename = params.filename;
+  const { filename } = await params;
 
   // Prevent path traversal
   if (filename.includes("..") || filename.includes("/") || filename.includes("\\")) {

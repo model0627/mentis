@@ -12,10 +12,12 @@ interface DocumentListProps {
     parentDocumentId?: string;
     level?: number;
     data?: Document[];
+    workspace?: string;
 }
 export const DocumentList = ({
     parentDocumentId,
-    level = 0
+    level = 0,
+    workspace = "private",
 }: DocumentListProps) => {
     const params = useParams();
     const router = useRouter();
@@ -28,7 +30,7 @@ export const DocumentList = ({
         }));
     };
 
-    const { data: documents, isLoading } = useSidebar(parentDocumentId);
+    const { data: documents, isLoading } = useSidebar(parentDocumentId, workspace);
 
     const onRedirect = (documentId: string) => {
         router.push(`/documents/${documentId}`);
@@ -74,12 +76,14 @@ export const DocumentList = ({
                     level={level}
                     onExpand={() => onExpand(document.id)}
                     expanded={expanded[document.id]}
+                    workspace={workspace}
                 />
                 {expanded[document.id] && (
                     <DocumentList
                         parentDocumentId={document.id}
                         level={level + 1}
-                    />    
+                        workspace={workspace}
+                    />
                 )}
             </div>
         ))}

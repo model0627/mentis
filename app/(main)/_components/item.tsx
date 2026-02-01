@@ -1,7 +1,7 @@
 "use client";
 
 import {
-    DropdownMenu, 
+    DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import { useCreateDocument, useArchiveDocument } from "@/hooks/use-documents";
-import { ChevronDown, ChevronRight, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react";
+import { ChevronDown, ChevronRight, Globe, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -26,11 +26,12 @@ interface ItemProps {
     label: string;
     onClick?: () => void;
     icon: LucideIcon;
+    workspace?: string;
 };
 
 export const Item = ({
     id, label, onClick, icon: Icon, active, documentIcon, isSearch, level = 0,
-    onExpand, expanded,
+    onExpand, expanded, workspace,
 }: ItemProps) => {
     const { data: session } = useSession();
     const router = useRouter();
@@ -64,8 +65,11 @@ export const Item = ({
     ) => {
         event.stopPropagation();
         if (!id) return;
-        const promise = createMutation.mutateAsync({ title: "Untitled", parentDocument: id })
-            .then((doc) => {
+        const promise = createMutation.mutateAsync({
+            title: "Untitled",
+            parentDocument: id,
+            workspace: workspace || "private",
+        }).then((doc) => {
                 const documentId = doc.id;
                 if(!expanded) {
                     onExpand?.();
@@ -107,10 +111,13 @@ export const Item = ({
             <span className="truncate">
                 {label}
             </span>
+            {workspace === "shared" && !!id && (
+                <Globe className="h-3 w-3 ml-1 shrink-0 text-muted-foreground/50" />
+            )}
             {isSearch && (
                 <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
                     <span className="text-xs">✻</span>k
-                </kbd>    
+                </kbd>
             )}
             {!!id && (
                 <div className="ml-auto flex items-center gap-x-2">
@@ -143,7 +150,7 @@ export const Item = ({
                     </DropdownMenu>
                     <div
                         role="button"
-                        onClick={onCreate} 
+                        onClick={onCreate}
                         className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-accent">
                         <Plus className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -155,7 +162,7 @@ export const Item = ({
 
 Item.Skeleton = function ItemSkeleton({ level }: { level?: number}) {
     return (
-        <div 
+        <div
             style={{ paddingLeft: level ? `${(level * 12) + 12}px` : "12px"}}
             className="flex gap-x-2 py-[3px]"
         >

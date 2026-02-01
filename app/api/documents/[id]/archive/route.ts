@@ -3,17 +3,18 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { documents } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { canDelete } from "@/lib/permissions";
 
-async function recursiveArchive(userId: string, documentId: string) {
+async function recursiveArchive(documentId: string, workspace: string) {
+  const conditions = [eq(documents.parentDocument, documentId)];
+  if (workspace === "shared") {
+    conditions.push(eq(documents.workspace, "shared"));
+  }
+
   const children = await db
     .select()
     .from(documents)
-    .where(
-      and(
-        eq(documents.userId, userId),
-        eq(documents.parentDocument, documentId)
-      )
-    );
+    .where(and(...conditions));
 
   for (const child of children) {
     await db
@@ -21,14 +22,14 @@ async function recursiveArchive(userId: string, documentId: string) {
       .set({ isArchived: true, updatedAt: new Date() })
       .where(eq(documents.id, child.id));
 
-    await recursiveArchive(userId, child.id);
+    await recursiveArchive(child.id, workspace);
   }
 }
 
 // PATCH /api/documents/:id/archive
 export async function PATCH(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   const userId = session?.user?.id;
@@ -37,7 +38,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { id } = params;
+  const { id } = await params;
 
   const [existing] = await db
     .select()
@@ -48,7 +49,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (existing.userId !== userId) {
+  if (!(await canDelete(existing, userId))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -58,7 +59,7 @@ export async function PATCH(
     .where(eq(documents.id, id))
     .returning();
 
-  await recursiveArchive(userId, id);
+  await recursiveArchive(id, existing.workspace);
 
   return NextResponse.json(doc);
 }

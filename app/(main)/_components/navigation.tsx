@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
-import { ChevronsLeft, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
+import { ChevronsLeft, Globe, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
@@ -99,9 +99,11 @@ export const Navigation = () => {
         }
     }
 
-    const handleCreate = () => {
-        const promise = createMutation.mutateAsync({ title: "Untitled" })
-            .then((doc) => router.push(`/documents/${doc.id}`))
+    const handleCreate = (workspace?: string) => {
+        const promise = createMutation.mutateAsync({
+            title: "Untitled",
+            workspace: workspace || "private",
+        }).then((doc) => router.push(`/documents/${doc.id}`));
 
         toast.promise(promise, {
             loading: "Creating a new note...",
@@ -134,12 +136,34 @@ export const Navigation = () => {
                     <UserItem />
                     <Item label="Search" icon={Search} isSearch onClick={search.onOpen}  />
                     <Item label="Settings" icon={Settings} onClick={settings.onOpen}  />
-                    <Item label="New page" icon={PlusCircle} onClick={handleCreate}  />
                 </div>
                 <div className="mt-4">
-                    <DocumentList />
+                    <div className="px-3 py-1">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            Shared Pages
+                        </p>
+                    </div>
                     <Item
-                        onClick={handleCreate}
+                        label="New shared page"
+                        icon={PlusCircle}
+                        onClick={() => handleCreate("shared")}
+                    />
+                    <DocumentList workspace="shared" />
+                </div>
+                <div className="mt-4">
+                    <div className="px-3 py-1">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            My Pages
+                        </p>
+                    </div>
+                    <Item
+                        label="New page"
+                        icon={PlusCircle}
+                        onClick={() => handleCreate("private")}
+                    />
+                    <DocumentList workspace="private" />
+                    <Item
+                        onClick={() => handleCreate("private")}
                         icon={Plus}
                         label="Add a page"
                     />

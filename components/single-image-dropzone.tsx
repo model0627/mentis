@@ -13,9 +13,9 @@ const variants = {
     'border-0 p-0 min-h-0 min-w-0 relative shadow-md bg-muted rounded-md',
   active: 'border-2',
   disabled:
-    'bg-muted border-border cursor-default pointer-events-none bg-opacity-30',
-  accept: 'border border-informative bg-informative bg-opacity-10',
-  reject: 'border border-destructive bg-destructive bg-opacity-10',
+    'bg-muted/30 border-border cursor-default pointer-events-none',
+  accept: 'border border-informative bg-informative/10',
+  reject: 'border border-destructive bg-destructive/10',
 };
 
 type InputProps = {
@@ -124,7 +124,7 @@ const SingleImageDropzone = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className='relative'>
         {disabled && (
-            <div className='flex items-center justify-center absolute inset-y-p h-full w-full bg-background/80 z-50'>
+            <div className='flex items-center justify-center absolute inset-0 h-full w-full bg-background/80 z-50'>
                 <Spinner size="lg" />
             </div>
         )}

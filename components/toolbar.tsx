@@ -12,11 +12,13 @@ import { useCoverImage } from "@/hooks/use-cover-image";
 interface ToolbarProps {
     initialData: Document;
     preview?: boolean;
+    editable?: boolean;
 }
 
 export const Toolbar = ({
     initialData,
-    preview
+    preview,
+    editable = true,
 }: ToolbarProps) => {
     const inputRef = useRef<ElementRef<"textarea">>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -27,8 +29,10 @@ export const Toolbar = ({
 
     const coverImage = useCoverImage();
 
+    const canEdit = !preview && editable;
+
     const enableInput = () => {
-        if (preview) return ;
+        if (!canEdit) return;
 
         setIsEditing(true);
         setTimeout(() => {
@@ -36,7 +40,7 @@ export const Toolbar = ({
             inputRef.current?.focus();
         }, 0);
     };
-    
+
     const disableInput = () => setIsEditing(false);
 
     const onInput = (value: string) => {
@@ -46,7 +50,7 @@ export const Toolbar = ({
             title: value || "Untitled"
         });
     }
-    
+
     const onKeyDown = (
         event: React.KeyboardEvent<HTMLTextAreaElement>
     ) => {
@@ -68,7 +72,7 @@ export const Toolbar = ({
 
     return (
         <div className="pl-[54px] group relative">
-            {!!initialData.icon && !preview && (
+            {!!initialData.icon && canEdit && (
                 <div className="flex items-center gap-x-2 group/icon pt-6">
                     <IconPicker onChange={onIconSelect}>
                         <p className="text-6xl hover:opacity-75 transition">
@@ -85,13 +89,13 @@ export const Toolbar = ({
                     </Button>
                 </div>
             )}
-            {!!initialData.icon && preview && (
+            {!!initialData.icon && !canEdit && (
                 <p className="text-6xl pt-6">
                     {initialData.icon}
                 </p>
             )}
             <div className="opacity-0 group-hover:opacity-100 flex items-center gap-x-1 py-4">
-                {!initialData.icon && !preview && (
+                {!initialData.icon && canEdit && (
                     <IconPicker asChild onChange={onIconSelect}>
                         <Button
                             className="text-muted-foreground text-xs"
@@ -103,7 +107,7 @@ export const Toolbar = ({
                         </Button>
                     </IconPicker>
                 )}
-                {!initialData.coverImage && !preview && (
+                {!initialData.coverImage && canEdit && (
                     <Button
                         onClick={coverImage.onOpen}
                         className="text-muted-foreground text-xs"
@@ -115,7 +119,7 @@ export const Toolbar = ({
                     </Button>
                 )}
             </div>
-            {isEditing && !preview ? (
+            {isEditing && canEdit ? (
                 <TextareaAutosize
                     ref={inputRef}
                     onBlur={disableInput}

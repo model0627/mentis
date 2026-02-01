@@ -1,24 +1,25 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useMemo, use } from "react";
 import { usePublicDocument } from "@/hooks/use-documents";
 import { Toolbar } from "@/components/toolbar";
 import { Cover } from "@/components/cover";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface DocumentIdPageProps {
-  params: {
+  params: Promise<{
     documentId: string;
-  };
+  }>;
 };
 
 const DocumentIdPage = ({
   params
 }: DocumentIdPageProps) => {
+  const { documentId } = use(params);
   const Editor = useMemo(() => dynamic(() => import("@/components/editor"), { ssr: false }) ,[]);
 
-  const { data: document, isLoading } = usePublicDocument(params.documentId);
+  const { data: document, isLoading } = usePublicDocument(documentId);
 
   const onChange = () => {};
 
@@ -42,7 +43,7 @@ const DocumentIdPage = ({
     return <div>Not found</div>
   }
 
-  return ( 
+  return (
     <div className="pb-40">
       <Cover preview url={document.coverImage ?? undefined} />
       <div className="md:max-w-3xl lg:max-w-4xl mx-auto">
@@ -56,5 +57,5 @@ const DocumentIdPage = ({
     </div>
   );
 }
- 
+
 export default DocumentIdPage;

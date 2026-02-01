@@ -6,9 +6,9 @@ import { eq } from "drizzle-orm";
 // GET /api/documents/public/:id — no auth required
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
 
   const [doc] = await db
     .select()

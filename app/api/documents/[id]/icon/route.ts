@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 // DELETE /api/documents/:id/icon
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   const userId = session?.user?.id;
@@ -16,7 +16,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { id } = params;
+  const { id } = await params;
 
   const [existing] = await db
     .select()

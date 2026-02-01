@@ -8,6 +8,17 @@ export interface Document {
   content: string | null;
   coverImage: string | null;
   icon: string | null;
+  workspace: "private" | "shared";
   createdAt: string | null;
   updatedAt: string | null;
+}
+
+export type DocumentRole = "admin" | "editor" | "viewer";
+
+export interface DocumentPermission {
+  id: string;
+  documentId: string;
+  userId: string;
+  role: DocumentRole;
+  createdAt: string | null;
 }

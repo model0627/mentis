@@ -5,33 +5,42 @@ import { useDocument, useUpdateDocument } from "@/hooks/use-documents";
 import { Toolbar } from "@/components/toolbar";
 import { Cover } from "@/components/cover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMemo, useCallback, useRef } from "react";
+import { useMemo, useCallback, useRef, use } from "react";
 import { useSession } from "next-auth/react";
 
 interface DocumentIdPageProps {
-    params: {
+    params: Promise<{
         documentId: string;
-    };
+    }>;
 };
 
 const DocumentIdPage = ({
     params
 }: DocumentIdPageProps) => {
+    const { documentId } = use(params);
     const Editor = useMemo(() => dynamic(() => import("@/components/editor"), { ssr: false } ), [])
-    const { data: document, isLoading } = useDocument(params.documentId);
+    const { data: document, isLoading } = useDocument(documentId);
     const updateMutation = useUpdateDocument();
     const { data: session } = useSession();
-    const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+    const userId = session?.user?.id;
+
+    const canEditDoc = document
+        ? document.workspace === "private"
+            ? document.userId === userId
+            : true
+        : false;
 
     const onChange = useCallback((content: string) => {
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
         saveTimerRef.current = setTimeout(() => {
             updateMutation.mutate({
-                id: params.documentId,
+                id: documentId,
                 content
             });
         }, 2000);
-    }, [params.documentId, updateMutation]);
+    }, [documentId, updateMutation]);
 
     if (isLoading) {
         return (
@@ -62,11 +71,12 @@ const DocumentIdPage = ({
             <Cover url={document.coverImage ?? undefined} />
             <div className="h-[35vh]" />
             <div className="md:max-w-3xl lg:md-max-w-4xl mx-auto">
-                <Toolbar initialData={document} />
+                <Toolbar initialData={document} editable={canEditDoc} />
                 <Editor
                     onChange={onChange}
                     initialContent={document.content ?? undefined}
-                    documentId={params.documentId}
+                    editable={canEditDoc}
+                    documentId={documentId}
                     userName={session?.user?.name || undefined}
                 />
             </div>

@@ -1,15 +1,16 @@
 # Mentis
 
-Notion 스타일의 실시간 협업 문서 편집기. Next.js 14 App Router, BlockNote 에디터, Yjs CRDT 기반 동시 편집을 지원합니다.
+Notion 스타일의 실시간 협업 문서 편집기. Next.js 16 App Router, BlockNote 에디터, Yjs CRDT 기반 동시 편집을 지원합니다.
 
 ## 주요 기능
 
-- **계층형 문서 관리** - 무한 깊이의 부모-자식 트리 구조
+- **계층형 문서 관리** - 무한 깊이의 부모-자식 트리 구조, 브레드크럼 네비게이션
 - **실시간 협업 편집** - Yjs + WebSocket 기반 동시 편집, 접속자 표시
 - **리치 텍스트 에디터** - BlockNote 기반 블록 에디터 (파일 업로드, 이미지, 테이블 등)
+- **권한 관리** - 워크스페이스(private/shared) + 역할 기반 접근 제어 (admin/editor/viewer)
 - **문서 퍼블리싱** - 공개 URL로 문서 공유
 - **커버 이미지 & 아이콘** - 문서별 커버 이미지와 이모지 아이콘
-- **커맨드 팔레트** - `⌘+K`로 문서 빠른 검색
+- **커맨드 팔레트** - `Cmd+K`로 문서 빠른 검색
 - **휴지통 & 복원** - 재귀적 아카이브/복원
 - **다크 모드** - 라이트/다크 테마 전환
 - **인증** - 자체 인증 (이메일/비밀번호) + Okta SSO (선택)
@@ -18,13 +19,13 @@ Notion 스타일의 실시간 협업 문서 편집기. Next.js 14 App Router, Bl
 
 | 영역 | 기술 |
 |------|------|
-| Framework | Next.js 14 (App Router) |
-| Language | TypeScript |
+| Framework | Next.js 16 (App Router, Standalone) |
+| Language | TypeScript 5 |
+| UI | React 19 + Tailwind CSS 4 + Radix UI + shadcn/ui |
 | Database | PostgreSQL 16 + Drizzle ORM |
 | Auth | NextAuth v5 (JWT) |
 | Editor | BlockNote + Yjs |
-| UI | Tailwind CSS + shadcn/ui + Radix UI |
-| State | TanStack React Query + Zustand |
+| State | TanStack React Query 5 + Zustand 5 |
 | Realtime | y-websocket (CRDT) |
 | Deploy | Docker Compose |
 
@@ -58,7 +59,7 @@ docker compose exec app node scripts/migrate.mjs
 
 ```bash
 # 데이터베이스
-DATABASE_URL=postgresql://notion:notion@localhost:5432/sootion
+DATABASE_URL=postgresql://notion:notion@postgres:5432/sootion
 POSTGRES_USER=notion
 POSTGRES_PASSWORD=notion
 
@@ -97,19 +98,22 @@ mentis/
 │   ├── (marketing)/         # 랜딩 페이지
 │   ├── (public)/            # 퍼블리시된 문서 프리뷰
 │   └── api/                 # API 라우트
-│       ├── documents/       #   문서 CRUD
+│       ├── documents/       #   문서 CRUD + 권한
+│       ├── users/           #   사용자 검색
 │       ├── upload/          #   파일 업로드
 │       └── auth/            #   NextAuth
 ├── components/
-│   ├── ui/                  # shadcn/ui 컴포넌트
-│   ├── modals/              # 모달 (설정, 커버 이미지, 확인)
+│   ├── ui/                  # shadcn/ui 컴포넌트 (Radix UI)
+│   ├── modals/              # 모달 (설정, 커버 이미지, 권한, 확인)
 │   ├── providers/           # Theme, Query, Modal 프로바이더
 │   └── editor.tsx           # BlockNote + Yjs 에디터
 ├── hooks/                   # React Query 훅, Zustand 스토어
 ├── lib/
 │   ├── db/                  # Drizzle ORM (schema, connection)
-│   └── api.ts               # API 클라이언트
+│   ├── api.ts               # API 클라이언트
+│   └── permissions.ts       # 권한 헬퍼 함수
 ├── scripts/
+│   ├── migrate.mjs          # DB 마이그레이션
 │   └── yjs-server.cjs       # Yjs WebSocket 서버
 ├── docker-compose.yml       # Docker 오케스트레이션
 └── docs/
@@ -123,25 +127,25 @@ mentis/
 │                     Client (Browser)                     │
 │                                                         │
 │  ┌──────────┐  ┌───────────┐  ┌──────────────────────┐ │
-│  │ React UI │  │ React     │  │ BlockNote Editor     │ │
-│  │ (Radix/  │  │ Query     │  │ + Yjs Provider       │ │
+│  │ React 19 │  │ React     │  │ BlockNote Editor     │ │
+│  │ (Radix/  │  │ Query 5   │  │ + Yjs Provider       │ │
 │  │  shadcn) │  │ (Server   │  │ (CRDT Sync)          │ │
 │  │          │  │  State)   │  │                      │ │
 │  └────┬─────┘  └─────┬─────┘  └──────────┬───────────┘ │
 │       │              │                    │             │
 │  ┌────┴──────────────┴────┐    ┌─────────┴──────────┐  │
-│  │ Zustand (Client State) │    │ y-websocket Client │  │
+│  │ Zustand 5 (UI State)  │    │ y-websocket Client │  │
 │  └────────────────────────┘    └─────────┬──────────┘  │
 └──────────────────────┬───────────────────┬──────────────┘
                        │ HTTP/REST         │ WebSocket
                        ▼                   ▼
 ┌──────────────────────────────┐  ┌──────────────────┐
-│   Next.js API Routes         │  │  Yjs WebSocket   │
-│   (Serverless Functions)     │  │  Server (:1234)  │
+│   Next.js 16 API Routes     │  │  Yjs WebSocket   │
+│   (Standalone Server)       │  │  Server (:1234)  │
 │                              │  │                  │
 │  ┌────────────┐ ┌─────────┐ │  │  Real-time doc   │
 │  │ NextAuth   │ │ Drizzle │ │  │  synchronization │
-│  │ (JWT Auth) │ │ ORM     │ │  │  + presence      │
+│  │ v5 (JWT)  │ │ ORM     │ │  │  + presence      │
 │  └────────────┘ └────┬────┘ │  └──────────────────┘
 │                      │      │
 └──────────────────────┼──────┘
@@ -152,6 +156,7 @@ mentis/
               │                 │
               │  users          │
               │  documents      │
+              │  permissions    │
               └─────────────────┘
 ```
 
@@ -161,6 +166,7 @@ mentis/
 2. **실시간 편집**: Client → y-websocket → Yjs WebSocket Server → 다른 클라이언트로 브로드캐스트
 3. **인증**: Client → NextAuth → JWT 토큰 → Middleware 검증
 4. **파일 업로드**: Client → `/api/upload` → 로컬 파일시스템 (`/public/uploads/`)
+5. **권한 관리**: Client → `/api/documents/[id]/permissions` → documentPermissions 테이블
 
 상세 아키텍처 문서: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 

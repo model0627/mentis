@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, boolean, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, boolean, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -25,6 +25,7 @@ export const documents = pgTable(
     content: text("content"),
     coverImage: text("cover_image"),
     icon: text("icon"),
+    workspace: text("workspace").notNull().default("private"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
@@ -34,5 +35,26 @@ export const documents = pgTable(
       table.userId,
       table.parentDocument
     ),
+    workspaceIdx: index("idx_documents_workspace").on(table.workspace),
+  })
+);
+
+export const documentPermissions = pgTable(
+  "document_permissions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    documentId: uuid("document_id")
+      .notNull()
+      .references(() => documents.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(),
+    role: text("role").notNull().default("viewer"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    docUserUnique: uniqueIndex("idx_doc_perms_doc_user").on(
+      table.documentId,
+      table.userId
+    ),
+    userIdx: index("idx_doc_perms_user").on(table.userId),
   })
 );

@@ -1,5 +1,5 @@
 "use client";
-import { use, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Document } from "@/lib/types";
 import { useUpdateDocument } from "@/hooks/use-documents";
 import { Input } from "@/components/ui/input";
@@ -8,10 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface TitleProps {
     initialData: Document;
+    editable?: boolean;
 };
 
 export const Title = ({
-    initialData
+    initialData,
+    editable = true,
 }: TitleProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const updateMutation = useUpdateDocument();
@@ -20,6 +22,7 @@ export const Title = ({
     const [isEditing, setIsEditing] = useState(false);
 
     const enableInput = () => {
+        if (!editable) return;
         setTitle(initialData.title);
         setIsEditing(true);
         setTimeout(() => {
@@ -52,7 +55,7 @@ export const Title = ({
     return (
         <div className="flex items-center gap-x-1">
             {!!initialData.title && <p>{initialData.icon}</p>}
-            {isEditing ? (
+            {isEditing && editable ? (
                 <Input
                     ref={inputRef}
                     onClick={enableInput}

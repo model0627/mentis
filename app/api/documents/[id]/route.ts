@@ -3,15 +3,16 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { documents } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { canView, canEdit, canDelete } from "@/lib/permissions";
 
 // GET /api/documents/:id
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   const userId = session?.user?.id;
-  const { id } = params;
+  const { id } = await params;
 
   const [doc] = await db
     .select()
@@ -22,16 +23,10 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // If published and not archived, allow public access
-  if (doc.isPublished && !doc.isArchived) {
-    return NextResponse.json(doc);
-  }
-
-  if (!userId) {
-    return NextResponse.json({ error: "Not authorized" }, { status: 401 });
-  }
-
-  if (doc.userId !== userId) {
+  if (!canView(doc, userId)) {
+    if (!userId) {
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+    }
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -41,7 +36,7 @@ export async function GET(
 // PATCH /api/documents/:id
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   const userId = session?.user?.id;
@@ -50,7 +45,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { id } = params;
+  const { id } = await params;
 
   const [existing] = await db
     .select()
@@ -61,7 +56,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (existing.userId !== userId) {
+  if (!(await canEdit(existing, userId))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -87,7 +82,7 @@ export async function PATCH(
 // DELETE /api/documents/:id
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   const userId = session?.user?.id;
@@ -96,7 +91,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { id } = params;
+  const { id } = await params;
 
   const [existing] = await db
     .select()
@@ -107,7 +102,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (existing.userId !== userId) {
+  if (!(await canDelete(existing, userId))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 

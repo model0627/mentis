@@ -1,4 +1,4 @@
-import { Document } from "./types";
+import { Document, DocumentPermission } from "./types";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -9,12 +9,20 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+export interface SearchUser {
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+}
+
 export const documentsApi = {
   getSearch: () => fetchJson<Document[]>("/api/documents"),
 
-  getSidebar: (parentDocument?: string) => {
+  getSidebar: (parentDocument?: string, workspace?: string) => {
     const params = new URLSearchParams();
     if (parentDocument) params.set("parentDocument", parentDocument);
+    if (workspace) params.set("workspace", workspace);
     return fetchJson<Document[]>(`/api/documents/sidebar?${params}`);
   },
 
@@ -25,7 +33,11 @@ export const documentsApi = {
   getPublicById: (id: string) =>
     fetchJson<Document>(`/api/documents/public/${id}`),
 
-  create: (data: { title: string; parentDocument?: string }) =>
+  create: (data: {
+    title: string;
+    parentDocument?: string;
+    workspace?: string;
+  }) =>
     fetchJson<Document>("/api/documents", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -60,4 +72,28 @@ export const documentsApi = {
 
   removeCoverImage: (id: string) =>
     fetchJson<Document>(`/api/documents/${id}/cover`, { method: "DELETE" }),
+
+  // Permissions
+  getPermissions: (id: string) =>
+    fetchJson<DocumentPermission[]>(`/api/documents/${id}/permissions`),
+
+  addPermission: (id: string, userId: string, role: string) =>
+    fetchJson<DocumentPermission>(`/api/documents/${id}/permissions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, role }),
+    }),
+
+  removePermission: (id: string, userId: string) =>
+    fetchJson<{ success: boolean }>(`/api/documents/${id}/permissions`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    }),
+
+  // User search
+  searchUsers: (query: string) => {
+    const params = new URLSearchParams({ q: query });
+    return fetchJson<SearchUser[]>(`/api/users/search?${params}`);
+  },
 };
