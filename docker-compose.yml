@@ -37,6 +37,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_YJS_WS_URL: ${NEXT_PUBLIC_YJS_WS_URL:-}
+        NEXT_PUBLIC_OKTA_ENABLED: ${NEXT_PUBLIC_OKTA_ENABLED:-}
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -46,6 +47,7 @@ services:
       AUTH_OKTA_ID: ${AUTH_OKTA_ID}
       AUTH_OKTA_SECRET: ${AUTH_OKTA_SECRET}
       AUTH_OKTA_ISSUER: ${AUTH_OKTA_ISSUER}
+      AUTH_URL: ${AUTH_URL:-http://localhost:8000}
       YJS_WS_URL: ws://yjs:1234
     volumes:
       - uploads:/app/public/uploads

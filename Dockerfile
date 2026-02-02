@@ -9,7 +9,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG NEXT_PUBLIC_YJS_WS_URL=""
+ARG NEXT_PUBLIC_OKTA_ENABLED=""
 ENV NEXT_PUBLIC_YJS_WS_URL=${NEXT_PUBLIC_YJS_WS_URL}
+ENV NEXT_PUBLIC_OKTA_ENABLED=${NEXT_PUBLIC_OKTA_ENABLED}
 RUN npm run build
 
 FROM node:20-alpine AS runner
