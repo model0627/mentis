@@ -14,6 +14,7 @@ import {
     useCreateInvitation,
 } from "@/hooks/use-members";
 import { useIsAdmin, useIsOwner } from "@/hooks/use-current-role";
+import { useChatT } from "@/hooks/use-chat-t";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,14 +50,18 @@ import { useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { WorkspaceRole } from "@/lib/types";
 import { WorkspaceUser } from "@/lib/api";
+import type { ChatTranslations } from "@/lib/chat-i18n";
 
-const roleLabelMap: Record<WorkspaceRole, string> = {
-    owner: "소유자",
-    admin: "관리자",
-    member: "멤버",
-};
+function getRoleLabelMap(t: ChatTranslations): Record<WorkspaceRole, string> {
+    return {
+        owner: t.roleOwner,
+        admin: t.roleAdmin,
+        member: t.roleMember,
+    };
+}
 
-function RoleBadge({ role }: { role: WorkspaceRole }) {
+function RoleBadge({ role, t }: { role: WorkspaceRole; t: ChatTranslations }) {
+    const roleLabelMap = getRoleLabelMap(t);
     if (role === "owner") {
         return (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-r1 bg-brand/10 text-brand text-[12px] font-medium w-fit">
@@ -86,6 +91,7 @@ export const MembersModal = () => {
     const currentUserId = session?.user?.id;
     const isAdmin = useIsAdmin();
     const isOwner = useIsOwner();
+    const t = useChatT();
 
     const [showInactive, setShowInactive] = useState(false);
     const [search, setSearch] = useState("");
@@ -161,10 +167,10 @@ export const MembersModal = () => {
                 <DialogContent className="max-w-3xl">
                     <DialogHeader className="border-b border-border pb-4">
                         <h2 className="text-lg font-medium text-foreground">
-                            멤버
+                            {t.membersTitle}
                             {users && (
                                 <span className="ml-2 text-muted-foreground text-[14px] font-normal">
-                                    {activeCount}명
+                                    {t.membersCount(activeCount)}
                                 </span>
                             )}
                         </h2>
@@ -185,13 +191,13 @@ export const MembersModal = () => {
                                     className="shrink-0 gap-1.5 bg-brand hover:bg-brand/90 text-white"
                                 >
                                     <UserPlus className="h-3.5 w-3.5" />
-                                    멤버 초대
+                                    {t.inviteMembers}
                                 </Button>
                             )}
                             <div className="relative flex-1">
                                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="이름 또는 이메일로 검색..."
+                                    placeholder={t.searchByNameOrEmail}
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     className="pl-9 h-8"
@@ -204,7 +210,7 @@ export const MembersModal = () => {
                                     onClick={() => setShowInactive(!showInactive)}
                                     className="shrink-0 text-[13px]"
                                 >
-                                    {showInactive ? "활성만" : "비활성 포함"}
+                                    {showInactive ? t.activeOnly : t.includeInactive}
                                 </Button>
                             )}
                         </div>
@@ -214,13 +220,13 @@ export const MembersModal = () => {
                             <div className="border border-border rounded-r2 p-4 space-y-3 bg-accent/30">
                                 <div className="flex items-center justify-between">
                                     <p className="text-[14px] font-medium text-foreground">
-                                        초대 링크 생성
+                                        {t.createInviteLink}
                                     </p>
                                     <button
                                         onClick={() => setShowInvite(false)}
                                         className="text-muted-foreground hover:text-foreground text-sm"
                                     >
-                                        닫기
+                                        {t.close}
                                     </button>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -231,8 +237,8 @@ export const MembersModal = () => {
                                         }
                                         className="h-8 rounded-r2 border border-border bg-background px-2 text-[13px]"
                                     >
-                                        <option value="member">멤버</option>
-                                        {isOwner && <option value="admin">관리자</option>}
+                                        <option value="member">{t.roleMember}</option>
+                                        {isOwner && <option value="admin">{t.roleAdmin}</option>}
                                     </select>
                                     <Button
                                         size="sm"
@@ -242,8 +248,8 @@ export const MembersModal = () => {
                                     >
                                         <LinkIcon className="h-3.5 w-3.5" />
                                         {createInvitation.isPending
-                                            ? "생성 중..."
-                                            : "링크 생성"}
+                                            ? t.creating
+                                            : t.createLink}
                                     </Button>
                                 </div>
                                 {inviteLink && (
@@ -264,7 +270,7 @@ export const MembersModal = () => {
                                             ) : (
                                                 <Copy className="h-3.5 w-3.5" />
                                             )}
-                                            {copied ? "복사됨" : "복사"}
+                                            {copied ? t.copied : t.copy}
                                         </Button>
                                     </div>
                                 )}
@@ -274,10 +280,10 @@ export const MembersModal = () => {
                         {/* Table header */}
                         <div className="grid grid-cols-[1fr_120px_40px] px-3 pb-1 border-b border-border">
                             <span className="text-muted-foreground text-[13px] font-medium">
-                                사용자
+                                {t.userColumn}
                             </span>
                             <span className="text-muted-foreground text-[13px] font-medium">
-                                역할
+                                {t.roleColumn}
                             </span>
                             <span />
                         </div>
@@ -286,13 +292,13 @@ export const MembersModal = () => {
                         <div className="max-h-[400px] overflow-y-auto -mx-1">
                             {isLoading ? (
                                 <p className="text-sm text-muted-foreground py-4 text-center">
-                                    불러오는 중...
+                                    {t.loading}
                                 </p>
                             ) : filtered.length === 0 ? (
                                 <p className="text-sm text-muted-foreground py-4 text-center">
                                     {search
-                                        ? "검색 결과가 없습니다."
-                                        : "멤버가 없습니다."}
+                                        ? t.noSearchResults
+                                        : t.noMembers}
                                 </p>
                             ) : (
                                 filtered.map((user) => {
@@ -328,15 +334,15 @@ export const MembersModal = () => {
                                                 </Avatar>
                                                 <div className="min-w-0">
                                                     <p className="text-foreground text-[14px] font-medium truncate">
-                                                        {user.name || "이름 없음"}
+                                                        {user.name || t.unnamed}
                                                         {isSelf && (
                                                             <span className="ml-1 text-muted-foreground text-[12px]">
-                                                                (나)
+                                                                {t.selfLabel}
                                                             </span>
                                                         )}
                                                         {!user.isActive && (
                                                             <span className="ml-1 text-red-500 text-[12px]">
-                                                                비활성
+                                                                {t.inactive}
                                                             </span>
                                                         )}
                                                     </p>
@@ -351,7 +357,7 @@ export const MembersModal = () => {
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <button className="flex items-center gap-1 hover:bg-accent rounded-r1 px-1 py-0.5 transition-colors">
-                                                            <RoleBadge role={userRole} />
+                                                            <RoleBadge role={userRole} t={t} />
                                                             <ChevronDown className="h-3 w-3 text-muted-foreground" />
                                                         </button>
                                                     </DropdownMenuTrigger>
@@ -366,7 +372,7 @@ export const MembersModal = () => {
                                                                 }
                                                             >
                                                                 <Shield className="h-4 w-4 mr-2 text-blue-500" />
-                                                                관리자
+                                                                {t.roleAdmin}
                                                             </DropdownMenuItem>
                                                         )}
                                                         <DropdownMenuItem
@@ -377,12 +383,12 @@ export const MembersModal = () => {
                                                                 )
                                                             }
                                                         >
-                                                            멤버
+                                                            {t.roleMember}
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             ) : (
-                                                <RoleBadge role={userRole} />
+                                                <RoleBadge role={userRole} t={t} />
                                             )}
 
                                             {/* Actions */}
@@ -399,8 +405,8 @@ export const MembersModal = () => {
                                                     className="flex items-center justify-center h-7 w-7 rounded-r1 hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
                                                     title={
                                                         user.isActive
-                                                            ? "비활성화"
-                                                            : "활성화"
+                                                            ? t.deactivate
+                                                            : t.activate
                                                     }
                                                 >
                                                     {user.isActive ? (
@@ -435,17 +441,17 @@ export const MembersModal = () => {
                     <AlertDialogHeader>
                         <AlertDialogTitle>
                             {confirmAction === "deactivate"
-                                ? "멤버 비활성화"
-                                : "멤버 활성화"}
+                                ? t.deactivateMember
+                                : t.activateMember}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {confirmAction === "deactivate"
-                                ? `${confirmUser?.name || confirmUser?.email}님을 비활성화하시겠습니까? 비활성화된 멤버는 로그인할 수 없습니다.`
-                                : `${confirmUser?.name || confirmUser?.email}님을 다시 활성화하시겠습니까?`}
+                                ? t.deactivateConfirm(confirmUser?.name || confirmUser?.email || "")
+                                : t.activateConfirm(confirmUser?.name || confirmUser?.email || "")}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>취소</AlertDialogCancel>
+                        <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleConfirmAction}
                             className={
@@ -455,8 +461,8 @@ export const MembersModal = () => {
                             }
                         >
                             {confirmAction === "deactivate"
-                                ? "비활성화"
-                                : "활성화"}
+                                ? t.deactivate
+                                : t.activate}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

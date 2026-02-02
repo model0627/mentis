@@ -2,6 +2,7 @@
 
 import { useState, useRef, type KeyboardEvent } from "react";
 import { Send, Paperclip, X } from "lucide-react";
+import { useChatT } from "@/hooks/use-chat-t";
 
 interface ChatInputProps {
   onSend: (content: string) => void;
@@ -13,9 +14,11 @@ interface ChatInputProps {
 export const ChatInput = ({
   onSend,
   onSendAttachment,
-  placeholder = "Type a message...",
+  placeholder,
   disabled,
 }: ChatInputProps) => {
+  const t = useChatT();
+  const resolvedPlaceholder = placeholder ?? t.inputPlaceholder;
   const [value, setValue] = useState("");
   const [uploading, setUploading] = useState(false);
   const [pendingFile, setPendingFile] = useState<{
@@ -105,7 +108,7 @@ export const ChatInput = ({
           onClick={() => fileInputRef.current?.click()}
           disabled={isDisabled}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border hover:bg-accent transition disabled:opacity-50"
-          title="Attach file"
+          title={t.attachFile}
         >
           <Paperclip className="h-4 w-4" />
         </button>
@@ -115,7 +118,7 @@ export const ChatInput = ({
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onInput={handleInput}
-          placeholder={pendingFile ? "Press Enter to send file" : placeholder}
+          placeholder={pendingFile ? t.pressEnterToSendFile : resolvedPlaceholder}
           disabled={isDisabled}
           rows={1}
           className="flex-1 resize-none rounded-md border bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-ring disabled:opacity-50"

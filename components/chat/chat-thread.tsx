@@ -10,6 +10,7 @@ import {
   useRemoveReaction,
 } from "@/hooks/use-chat";
 import { useChatStore } from "@/hooks/use-chat-store";
+import { useChatT } from "@/hooks/use-chat-t";
 import { useChatWs } from "@/hooks/use-chat-ws";
 import { ChatMessageItem } from "./chat-message-item";
 import { ChatInput } from "./chat-input";
@@ -43,6 +44,7 @@ export const ChatThread = () => {
   const addReaction = useAddReaction();
   const removeReaction = useRemoveReaction();
   const { broadcast } = useChatWs(activeRoomSlug, activeRoomId);
+  const t = useChatT();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -153,7 +155,7 @@ export const ChatThread = () => {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <span className="text-sm font-semibold">Thread</span>
+        <span className="text-sm font-semibold">{t.thread}</span>
       </div>
 
       {/* Parent message */}
@@ -172,7 +174,7 @@ export const ChatThread = () => {
       )}
 
       <div className="px-3 py-1.5 text-xs text-muted-foreground border-b">
-        {displayReplies.length} {displayReplies.length === 1 ? "reply" : "replies"}
+        {t.repliesCount(displayReplies.length)}
       </div>
 
       {/* Thread replies */}
@@ -188,11 +190,11 @@ export const ChatThread = () => {
         )}
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center py-8 text-sm text-muted-foreground">
-            Loading replies...
+            {t.repliesLoading}
           </div>
         ) : displayReplies.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-8 text-sm text-muted-foreground">
-            No replies yet
+            {t.noReplies}
           </div>
         ) : (
           <div className="py-2">
@@ -228,7 +230,7 @@ export const ChatThread = () => {
             }
           );
         }}
-        placeholder="Reply in thread..."
+        placeholder={t.threadReplyPlaceholder}
         disabled={sendMessage.isPending}
       />
     </div>

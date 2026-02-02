@@ -7,6 +7,7 @@ import { useChatStore } from "@/hooks/use-chat-store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Search, User } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useChatT } from "@/hooks/use-chat-t";
 
 interface ChatUserPickerProps {
   onBack: () => void;
@@ -20,6 +21,7 @@ export const ChatUserPicker = ({ onBack }: ChatUserPickerProps) => {
   const { data: allUsers, isLoading: isLoadingAll } = useUsers();
   const createRoom = useCreateChatRoom();
   const { openRoom } = useChatStore();
+  const t = useChatT();
 
   // Show search results when typing, otherwise show all users
   const isSearchMode = query.length >= 2;
@@ -49,7 +51,7 @@ export const ChatUserPicker = ({ onBack }: ChatUserPickerProps) => {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <span className="text-sm font-semibold">New Message</span>
+        <span className="text-sm font-semibold">{t.newMessage}</span>
       </div>
 
       <div className="px-3 py-2 border-b">
@@ -58,7 +60,7 @@ export const ChatUserPicker = ({ onBack }: ChatUserPickerProps) => {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name or email..."
+            placeholder={t.searchPlaceholder}
             className="flex-1 bg-transparent py-1.5 text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
           />
@@ -68,11 +70,11 @@ export const ChatUserPicker = ({ onBack }: ChatUserPickerProps) => {
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-            Searching...
+            {t.searching}
           </div>
         ) : !users || users.length === 0 ? (
           <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-            No users found
+            {t.noUsersFound}
           </div>
         ) : (
           users.map((user) => (
@@ -90,7 +92,7 @@ export const ChatUserPicker = ({ onBack }: ChatUserPickerProps) => {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">
-                  {user.name ?? "Unknown"}
+                  {user.name ?? t.unknownUser}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
                   {user.email}

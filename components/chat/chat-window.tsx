@@ -7,10 +7,12 @@ import { ChatConversation } from "./chat-conversation";
 import { ChatThread } from "./chat-thread";
 import { ChatUserPicker } from "./chat-user-picker";
 import { X } from "lucide-react";
+import { useChatT } from "@/hooks/use-chat-t";
 
 export const ChatWindow = () => {
   const { isOpen, closeWidget, activeTab } = useChatStore();
   const [showUserPicker, setShowUserPicker] = useState(false);
+  const t = useChatT();
 
   if (!isOpen) return null;
 
@@ -18,7 +20,7 @@ export const ChatWindow = () => {
     <div className="fixed bottom-20 right-6 z-50 flex h-[500px] w-[400px] flex-col overflow-hidden rounded-lg border bg-background shadow-xl">
       {/* Title bar */}
       <div className="flex items-center justify-between border-b px-4 py-2 bg-muted/30">
-        <span className="text-sm font-semibold">Chat</span>
+        <span className="text-sm font-semibold">{t.chat}</span>
         <button
           onClick={closeWidget}
           className="flex h-6 w-6 items-center justify-center rounded-md hover:bg-accent transition"

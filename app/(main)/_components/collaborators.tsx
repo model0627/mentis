@@ -1,25 +1,28 @@
 "use client";
 
 import { usePresence } from "@/hooks/use-presence";
+import { useChatT } from "@/hooks/use-chat-t";
+import type { ChatTranslations } from "@/lib/chat-i18n";
 
-function formatTimeAgo(timestamp: number): string {
+function formatTimeAgo(timestamp: number, t: ChatTranslations): string {
     const diff = Date.now() - timestamp;
     const seconds = Math.floor(diff / 1000);
 
-    if (seconds < 60) return "방금 전";
+    if (seconds < 60) return t.timeJustNow;
 
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}분 전`;
+    if (minutes < 60) return t.timeMinutesAgo(minutes);
 
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}시간 전`;
+    if (hours < 24) return t.timeHoursAgo(hours);
 
     const days = Math.floor(hours / 24);
-    return `${days}일 전`;
+    return t.timeDaysAgo(days);
 }
 
 export const Collaborators = () => {
     const accounts = usePresence((s) => s.accounts);
+    const t = useChatT();
 
     if (accounts.length === 0) return null;
 
@@ -39,7 +42,7 @@ export const Collaborators = () => {
                     <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-r2 shadow-s2 border whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                         <p className="font-medium">{account.name}</p>
                         <p className="text-muted-foreground mt-0.5">
-                            {formatTimeAgo(account.lastSeen)}
+                            {formatTimeAgo(account.lastSeen, t)}
                         </p>
                     </div>
                 </div>

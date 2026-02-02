@@ -11,6 +11,7 @@ import {
   useMarkRead,
 } from "@/hooks/use-chat";
 import { useChatStore } from "@/hooks/use-chat-store";
+import { useChatT } from "@/hooks/use-chat-t";
 import { useChatWs } from "@/hooks/use-chat-ws";
 import { ChatMessageItem } from "./chat-message-item";
 import { ChatInput } from "./chat-input";
@@ -38,6 +39,7 @@ export const ChatConversation = () => {
   const markRead = useMarkRead();
   const { broadcast } = useChatWs(activeRoomSlug, activeRoomId);
   const { openThread } = useChatStore();
+  const t = useChatT();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -135,8 +137,8 @@ export const ChatConversation = () => {
 
   // Derive room name from slug
   const roomTitle = activeRoomSlug?.startsWith("chat-page-")
-    ? "Page Chat"
-    : "Direct Message";
+    ? t.pageChat
+    : t.directMessage;
 
   return (
     <div className="flex flex-col h-full">
@@ -164,11 +166,11 @@ export const ChatConversation = () => {
         )}
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center py-8 text-sm text-muted-foreground">
-            Loading messages...
+            {t.loadingMessages}
           </div>
         ) : displayMessages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-8 text-sm text-muted-foreground">
-            No messages yet. Start the conversation!
+            {t.noMessages}
           </div>
         ) : (
           <div className="py-2">

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { ChatLocale } from "@/lib/chat-i18n";
 
 export type ChatTab = "rooms" | "conversation" | "thread";
 
@@ -8,6 +9,7 @@ interface ChatStore {
   activeRoomSlug: string | null;
   activeTab: ChatTab;
   threadMessageId: string | null;
+  locale: ChatLocale;
 
   openWidget: () => void;
   closeWidget: () => void;
@@ -16,6 +18,7 @@ interface ChatStore {
   openThread: (messageId: string) => void;
   backToRooms: () => void;
   backToConversation: () => void;
+  setLocale: (locale: ChatLocale) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -24,6 +27,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   activeRoomSlug: null,
   activeTab: "rooms",
   threadMessageId: null,
+  locale: "ko",
 
   openWidget: () => set({ isOpen: true }),
   closeWidget: () => set({ isOpen: false }),
@@ -56,4 +60,6 @@ export const useChatStore = create<ChatStore>((set) => ({
       activeTab: "conversation",
       threadMessageId: null,
     }),
+
+  setLocale: (locale) => set({ locale }),
 }));

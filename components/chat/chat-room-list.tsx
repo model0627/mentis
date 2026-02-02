@@ -2,11 +2,14 @@
 
 import { useChatRooms } from "@/hooks/use-chat";
 import { useChatStore } from "@/hooks/use-chat-store";
+import { useChatT } from "@/hooks/use-chat-t";
 import { ChatRoom } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FileText, User, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { formatDistanceToNow } from "@/lib/chat-utils";
+import type { ChatTranslations } from "@/lib/chat-i18n";
+import type { ChatLocale } from "@/lib/chat-i18n";
 
 interface ChatRoomListProps {
   onNewDm?: () => void;
@@ -14,14 +17,15 @@ interface ChatRoomListProps {
 
 export const ChatRoomList = ({ onNewDm }: ChatRoomListProps = {}) => {
   const { data: rooms, isLoading } = useChatRooms();
-  const { openRoom } = useChatStore();
+  const { openRoom, locale } = useChatStore();
   const { data: session } = useSession();
   const currentUserId = session?.user?.id;
+  const t = useChatT();
 
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
-        Loading...
+        {t.loading}
       </div>
     );
   }
@@ -29,9 +33,9 @@ export const ChatRoomList = ({ onNewDm }: ChatRoomListProps = {}) => {
   if (!rooms || rooms.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground p-4 text-center">
-        No conversations yet.
+        {t.noConversations}
         <br />
-        Open a shared document to start chatting.
+        {t.noConversationsHint}
       </div>
     );
   }
@@ -48,27 +52,27 @@ export const ChatRoomList = ({ onNewDm }: ChatRoomListProps = {}) => {
             className="flex w-full items-center gap-2 rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground transition"
           >
             <Plus className="h-4 w-4" />
-            New Direct Message
+            {t.newMessage}
           </button>
         </div>
       )}
       {pageRooms.length > 0 && (
         <div>
           <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
-            Pages
+            {t.pages}
           </div>
           {pageRooms.map((room) => (
-            <RoomItem key={room.id} room={room} currentUserId={currentUserId} onClick={() => openRoom(room.id, room.slug)} />
+            <RoomItem key={room.id} room={room} currentUserId={currentUserId} onClick={() => openRoom(room.id, room.slug)} t={t} locale={locale} />
           ))}
         </div>
       )}
       {dmRooms.length > 0 && (
         <div>
           <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
-            Direct Messages
+            {t.directMessages}
           </div>
           {dmRooms.map((room) => (
-            <RoomItem key={room.id} room={room} currentUserId={currentUserId} onClick={() => openRoom(room.id, room.slug)} />
+            <RoomItem key={room.id} room={room} currentUserId={currentUserId} onClick={() => openRoom(room.id, room.slug)} t={t} locale={locale} />
           ))}
         </div>
       )}
@@ -80,10 +84,14 @@ function RoomItem({
   room,
   currentUserId,
   onClick,
+  t,
+  locale,
 }: {
   room: ChatRoom;
   currentUserId?: string;
   onClick: () => void;
+  t: ChatTranslations;
+  locale: ChatLocale;
 }) {
   const otherMember = room.type === "dm"
     ? room.members?.find((m) => m.userId !== currentUserId)
@@ -91,12 +99,12 @@ function RoomItem({
 
   const title =
     room.type === "page"
-      ? `${room.documentIcon ?? ""} ${room.documentTitle ?? "Untitled"}`.trim()
-      : otherMember?.userName ?? otherMember?.userEmail ?? "Direct Message";
+      ? `${room.documentIcon ?? ""} ${room.documentTitle ?? t.untitled}`.trim()
+      : otherMember?.userName ?? otherMember?.userEmail ?? t.directMessage;
 
   const lastMsg = room.lastMessage;
   const preview = lastMsg?.isDeleted
-    ? "Message deleted"
+    ? t.deletedMessage
     : lastMsg?.content
       ? lastMsg.content.length > 50
         ? lastMsg.content.slice(0, 50) + "..."
@@ -133,7 +141,7 @@ function RoomItem({
           <span className="text-sm font-medium truncate">{title}</span>
           {lastMsg?.createdAt && (
             <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-              {formatDistanceToNow(lastMsg.createdAt)}
+              {formatDistanceToNow(lastMsg.createdAt, locale)}
             </span>
           )}
         </div>

@@ -5,6 +5,8 @@ import { ChatMessage } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChatEmojiPicker } from "./chat-emoji-picker";
 import { formatDistanceToNow } from "@/lib/chat-utils";
+import { useChatT } from "@/hooks/use-chat-t";
+import { useChatStore } from "@/hooks/use-chat-store";
 import { User, Pencil, Trash2, MessageSquare } from "lucide-react";
 
 interface ChatMessageItemProps {
@@ -28,6 +30,8 @@ export const ChatMessageItem = ({
   onOpenThread,
   currentUserId,
 }: ChatMessageItemProps) => {
+  const t = useChatT();
+  const locale = useChatStore((s) => s.locale);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(message.content ?? "");
 
@@ -36,7 +40,7 @@ export const ChatMessageItem = ({
       <div className="flex items-start gap-2 px-3 py-1.5 opacity-50">
         <div className="h-7 w-7 shrink-0" />
         <p className="text-xs italic text-muted-foreground">
-          This message was deleted
+          {t.messageDeleted}
         </p>
       </div>
     );
@@ -74,13 +78,13 @@ export const ChatMessageItem = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">
           <span className="text-xs font-semibold">
-            {message.userName ?? "Unknown"}
+            {message.userName ?? t.unknownUser}
           </span>
           <span className="text-[10px] text-muted-foreground">
-            {message.createdAt && formatDistanceToNow(message.createdAt)}
+            {message.createdAt && formatDistanceToNow(message.createdAt, locale)}
           </span>
           {message.isEdited && (
-            <span className="text-[10px] text-muted-foreground">(edited)</span>
+            <span className="text-[10px] text-muted-foreground">{t.edited}</span>
           )}
         </div>
 
@@ -99,7 +103,7 @@ export const ChatMessageItem = ({
                 onClick={handleEditSave}
                 className="text-xs text-primary hover:underline"
               >
-                Save
+                {t.save}
               </button>
               <button
                 onClick={() => {
@@ -108,7 +112,7 @@ export const ChatMessageItem = ({
                 }}
                 className="text-xs text-muted-foreground hover:underline"
               >
-                Cancel
+                {t.cancel}
               </button>
             </div>
           </div>
@@ -129,7 +133,7 @@ export const ChatMessageItem = ({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 mt-1 text-xs text-blue-500 hover:underline"
           >
-            {message.attachmentName ?? "Attachment"}
+            {message.attachmentName ?? t.attachment}
           </a>
         )}
 
@@ -167,7 +171,7 @@ export const ChatMessageItem = ({
             onClick={() => onOpenThread?.(message.id)}
             className="mt-1 text-xs text-blue-500 hover:underline"
           >
-            {message.replyCount} {message.replyCount === 1 ? "reply" : "replies"}
+            {t.repliesCount(message.replyCount ?? 0)}
           </button>
         )}
       </div>
@@ -179,7 +183,7 @@ export const ChatMessageItem = ({
           <button
             onClick={() => onOpenThread(message.id)}
             className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent transition"
-            title="Reply in thread"
+            title={t.replyInThread}
           >
             <MessageSquare className="h-3.5 w-3.5" />
           </button>
@@ -192,14 +196,14 @@ export const ChatMessageItem = ({
                 setIsEditing(true);
               }}
               className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent transition"
-              title="Edit"
+              title={t.edit}
             >
               <Pencil className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => onDelete?.(message.id)}
               className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-destructive/10 text-destructive transition"
-              title="Delete"
+              title={t.delete}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
