@@ -7,6 +7,7 @@ import { Cover } from "@/components/cover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useCallback, useRef, use } from "react";
 import { useSession } from "next-auth/react";
+import { useYjs } from "@/hooks/use-yjs";
 
 interface DocumentIdPageProps {
     params: Promise<{
@@ -25,11 +26,14 @@ const DocumentIdPage = ({
     const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     const userId = session?.user?.id;
+    const { provider, fragment, titleText } = useYjs(documentId, session?.user?.name || undefined);
 
     const canEditDoc = document
-        ? document.workspace === "private"
-            ? document.userId === userId
-            : true
+        ? document.isLocked
+            ? false
+            : document.workspace === "private"
+                ? document.userId === userId
+                : true
         : false;
 
     const onChange = useCallback((content: string) => {
@@ -67,16 +71,17 @@ const DocumentIdPage = ({
     }
 
     return (
-        <div className="pb-40">
+        <div className={`pb-40 ${document.smallText ? "text-sm" : ""}`}>
             <Cover url={document.coverImage ?? undefined} />
             <div className="h-[35vh]" />
-            <div className="md:max-w-3xl lg:md-max-w-4xl mx-auto">
-                <Toolbar initialData={document} editable={canEditDoc} />
+            <div className={document.fullWidth ? "mx-auto px-12" : "md:max-w-3xl lg:max-w-4xl mx-auto"}>
+                <Toolbar initialData={document} editable={canEditDoc} titleText={titleText} />
                 <Editor
                     onChange={onChange}
                     initialContent={document.content ?? undefined}
                     editable={canEditDoc}
-                    documentId={documentId}
+                    provider={provider}
+                    fragment={fragment}
                     userName={session?.user?.name || undefined}
                 />
             </div>

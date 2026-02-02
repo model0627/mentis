@@ -61,7 +61,7 @@ export async function PATCH(
   }
 
   const body = await req.json();
-  const { title, content, coverImage, icon, isPublished } = body;
+  const { title, content, coverImage, icon, isPublished, fullWidth, smallText, isLocked, parentDocument } = body;
 
   const updateData: Record<string, any> = { updatedAt: new Date() };
   if (title !== undefined) updateData.title = title;
@@ -69,6 +69,10 @@ export async function PATCH(
   if (coverImage !== undefined) updateData.coverImage = coverImage;
   if (icon !== undefined) updateData.icon = icon;
   if (isPublished !== undefined) updateData.isPublished = isPublished;
+  if (fullWidth !== undefined) updateData.fullWidth = fullWidth;
+  if (smallText !== undefined) updateData.smallText = smallText;
+  if (isLocked !== undefined) updateData.isLocked = isLocked;
+  if (parentDocument !== undefined) updateData.parentDocument = parentDocument;
 
   const [doc] = await db
     .update(documents)

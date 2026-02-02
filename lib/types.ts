@@ -9,6 +9,9 @@ export interface Document {
   coverImage: string | null;
   icon: string | null;
   workspace: "private" | "shared";
+  fullWidth: boolean;
+  smallText: boolean;
+  isLocked: boolean;
   createdAt: string | null;
   updatedAt: string | null;
 }
@@ -20,5 +23,19 @@ export interface DocumentPermission {
   documentId: string;
   userId: string;
   role: DocumentRole;
+  createdAt: string | null;
+}
+
+export type WorkspaceRole = "owner" | "admin" | "member";
+
+export interface Invitation {
+  id: string;
+  token: string;
+  invitedBy: string;
+  email: string | null;
+  role: WorkspaceRole;
+  usedBy: string | null;
+  usedAt: string | null;
+  expiresAt: string;
   createdAt: string | null;
 }

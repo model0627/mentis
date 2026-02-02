@@ -11,6 +11,7 @@ const publicPaths = [
   "/api/auth",
   "/api/register",
   "/api/documents/public",
+  "/invite",
 ];
 
 function isPublic(pathname: string) {

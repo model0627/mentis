@@ -96,6 +96,35 @@ export function useCreateDocument() {
   });
 }
 
+export function useDuplicateDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (sourceDoc: Document) => {
+      const created = await documentsApi.create({
+        title: `${sourceDoc.title} (copy)`,
+        parentDocument: sourceDoc.parentDocument ?? undefined,
+        workspace: sourceDoc.workspace,
+      });
+      // Copy content, icon, coverImage to the new document
+      const updates: Record<string, any> = {};
+      if (sourceDoc.content) updates.content = sourceDoc.content;
+      if (sourceDoc.icon) updates.icon = sourceDoc.icon;
+      if (sourceDoc.coverImage) updates.coverImage = sourceDoc.coverImage;
+      if (sourceDoc.fullWidth) updates.fullWidth = sourceDoc.fullWidth;
+      if (sourceDoc.smallText) updates.smallText = sourceDoc.smallText;
+
+      if (Object.keys(updates).length > 0) {
+        return documentsApi.update(created.id, updates);
+      }
+      return created;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+    },
+  });
+}
+
 export function useUpdateDocument() {
   const queryClient = useQueryClient();
 
@@ -110,6 +139,10 @@ export function useUpdateDocument() {
       coverImage?: string;
       icon?: string;
       isPublished?: boolean;
+      fullWidth?: boolean;
+      smallText?: boolean;
+      isLocked?: boolean;
+      parentDocument?: string | null;
     }) => documentsApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
@@ -210,6 +243,15 @@ export function useRemovePermission() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
     },
+  });
+}
+
+// ─── Users Hook ────────────────────────────────────────────
+
+export function useUsers() {
+  return useQuery({
+    queryKey: ["users", "all"],
+    queryFn: () => documentsApi.getUsers(),
   });
 }
 

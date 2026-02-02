@@ -21,6 +21,10 @@
 
 # claude code
 .claude/
+.omc/
+
+# logs
+ping.log
 
 # misc
 .DS_Store

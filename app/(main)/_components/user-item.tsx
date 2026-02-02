@@ -1,6 +1,8 @@
 "use client";
 import { ChevronDown, Settings, Users, MoreHorizontal, Check } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import { useMembersModal } from "@/hooks/use-members-modal";
+import { useMembers } from "@/hooks/use-members";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
     DropdownMenu,
@@ -12,7 +14,10 @@ import {
 
 export const UserItem = () => {
     const { data: session } = useSession();
+    const membersModal = useMembersModal();
+    const { data: members } = useMembers();
 
+    const memberCount = members?.length ?? 0;
     const userName = session?.user?.name || "User";
     const userEmail = session?.user?.email || "";
     const userImage = session?.user?.image || "";
@@ -53,7 +58,7 @@ export const UserItem = () => {
                                 {userName}&apos;s Mentis
                             </p>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                                개인 요금제 - 1명의 멤버
+                                개인 요금제 - {memberCount}명의 멤버
                             </p>
                         </div>
                     </div>
@@ -64,7 +69,13 @@ export const UserItem = () => {
                             <Settings className="h-3.5 w-3.5" />
                             설정
                         </button>
-                        <button className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-r2 border border-border bg-background text-[13px] font-medium text-muted-foreground hover:bg-accent transition-colors">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                membersModal.onOpen();
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-r2 border border-border bg-background text-[13px] font-medium text-muted-foreground hover:bg-accent transition-colors"
+                        >
                             <Users className="h-3.5 w-3.5" />
                             멤버
                         </button>

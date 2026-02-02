@@ -1,4 +1,4 @@
-import { Document, DocumentPermission } from "./types";
+import { Document, DocumentPermission, Invitation, WorkspaceRole } from "./types";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -14,6 +14,16 @@ export interface SearchUser {
   name: string | null;
   email: string;
   image: string | null;
+}
+
+export interface WorkspaceUser {
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+  role: WorkspaceRole;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export const documentsApi = {
@@ -47,7 +57,7 @@ export const documentsApi = {
   update: (
     id: string,
     data: Partial<
-      Pick<Document, "title" | "content" | "coverImage" | "icon" | "isPublished">
+      Pick<Document, "title" | "content" | "coverImage" | "icon" | "isPublished" | "fullWidth" | "smallText" | "isLocked" | "parentDocument">
     >
   ) =>
     fetchJson<Document>(`/api/documents/${id}`, {
@@ -91,9 +101,51 @@ export const documentsApi = {
       body: JSON.stringify({ userId }),
     }),
 
+  // Users
+  getUsers: (includeInactive?: boolean) => {
+    const params = includeInactive ? "?includeInactive=true" : "";
+    return fetchJson<WorkspaceUser[]>(`/api/users${params}`);
+  },
+
   // User search
   searchUsers: (query: string) => {
     const params = new URLSearchParams({ q: query });
     return fetchJson<SearchUser[]>(`/api/users/search?${params}`);
   },
+};
+
+export const membersApi = {
+  changeRole: (userId: string, role: WorkspaceRole) =>
+    fetchJson<{ id: string; role: string }>(`/api/users/${userId}/role`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role }),
+    }),
+
+  deactivateUser: (userId: string) =>
+    fetchJson<{ id: string; isActive: boolean }>(
+      `/api/users/${userId}/deactivate`,
+      { method: "PATCH" }
+    ),
+
+  activateUser: (userId: string) =>
+    fetchJson<{ id: string; isActive: boolean }>(
+      `/api/users/${userId}/activate`,
+      { method: "PATCH" }
+    ),
+
+  createInvitation: (role: string, email?: string) =>
+    fetchJson<Invitation>("/api/invitations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role, email }),
+    }),
+
+  getInvitations: () => fetchJson<Invitation[]>("/api/invitations"),
+
+  acceptInvitation: (token: string) =>
+    fetchJson<{ success: boolean; role: string }>(
+      `/api/invitations/${token}/accept`,
+      { method: "POST" }
+    ),
 };

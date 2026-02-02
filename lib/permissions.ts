@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
-import { documents, documentPermissions } from "@/lib/db/schema";
+import { documents, documentPermissions, users } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
-import { DocumentRole } from "@/lib/types";
+import { DocumentRole, WorkspaceRole } from "@/lib/types";
 
 type DocLike = {
   id: string;
@@ -54,9 +54,8 @@ export async function canEdit(
   // Private: owner only
   if (doc.workspace === "private") return false;
 
-  // Shared: admin or editor
-  const role = await getUserRole(doc.id, userId);
-  return role === "admin" || role === "editor";
+  // Shared: all authenticated workspace members can edit
+  return true;
 }
 
 export async function canDelete(
@@ -91,4 +90,26 @@ export async function canManagePermissions(
   // Shared: admin only
   const role = await getUserRole(doc.id, userId);
   return role === "admin";
+}
+
+// ── Workspace-level permission helpers ─────────────────────
+
+export async function getWorkspaceRole(
+  userId: string
+): Promise<WorkspaceRole> {
+  const [user] = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, userId));
+  return (user?.role as WorkspaceRole) ?? "member";
+}
+
+export async function isWorkspaceAdmin(userId: string): Promise<boolean> {
+  const role = await getWorkspaceRole(userId);
+  return role === "owner" || role === "admin";
+}
+
+export async function isWorkspaceOwner(userId: string): Promise<boolean> {
+  const role = await getWorkspaceRole(userId);
+  return role === "owner";
 }

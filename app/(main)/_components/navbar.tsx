@@ -1,7 +1,7 @@
 "use client";
 
 import { useDocument, useBreadcrumbs } from "@/hooks/use-documents";
-import { ChevronRight, MenuIcon, Shield } from "lucide-react";
+import { ChevronRight, Lock, MenuIcon, Shield } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Title } from "./title";
@@ -87,6 +87,9 @@ export const Navbar = ({
                         <Title initialData={document} editable={canEditDoc} />
                     </div>
                     <div className="flex items-center gap-x-2">
+                        {document.isLocked && (
+                            <Lock className="h-4 w-4 text-muted-foreground" />
+                        )}
                         <Collaborators />
                         {canManage && (
                             <Button

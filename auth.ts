@@ -56,6 +56,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
+    async jwt({ token, user }: any) {
+      if (user) {
+        token.id = user.id;
+      }
+      // Refresh role from DB (only runs in Node.js runtime, not Edge middleware)
+      if (token.id) {
+        try {
+          const [dbUser] = await db
+            .select({ role: users.role, isActive: users.isActive })
+            .from(users)
+            .where(eq(users.id, token.id));
+          if (dbUser && dbUser.isActive) {
+            token.role = dbUser.role;
+          } else if (dbUser && !dbUser.isActive) {
+            return {};
+          }
+        } catch {
+          // keep existing token on error
+        }
+      }
+      return token;
+    },
     async signIn({ user, account }) {
       if (account?.provider === "okta") {
         const email = user.email!;
@@ -77,8 +99,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             .returning();
           user.id = newUser.id;
         } else {
+          // Block inactive users from signing in
+          if (!existing.isActive) return false;
           user.id = existing.id;
         }
+      }
+      if (account?.provider === "credentials") {
+        // Check isActive for credentials login
+        const [dbUser] = await db
+          .select({ isActive: users.isActive })
+          .from(users)
+          .where(eq(users.email, user.email!));
+        if (dbUser && !dbUser.isActive) return false;
       }
       return true;
     },
