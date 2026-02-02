@@ -80,6 +80,65 @@ await sql`
   )
 `;
 
-console.log("Migration complete: users + documents + document_permissions + invitations tables ready");
+// ── Chat tables ─────────────────────────────────────────────
+await sql`
+  CREATE TABLE IF NOT EXISTS "chat_rooms" (
+    "id" uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    "type" text NOT NULL,
+    "document_id" uuid REFERENCES "documents"("id") ON DELETE CASCADE,
+    "slug" text NOT NULL UNIQUE,
+    "created_at" timestamp DEFAULT now()
+  )
+`;
+
+await sql`CREATE INDEX IF NOT EXISTS "idx_chat_rooms_document" ON "chat_rooms"("document_id")`;
+
+await sql`
+  CREATE TABLE IF NOT EXISTS "chat_room_members" (
+    "id" uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    "room_id" uuid NOT NULL REFERENCES "chat_rooms"("id") ON DELETE CASCADE,
+    "user_id" text NOT NULL,
+    "last_read_at" timestamp,
+    "joined_at" timestamp DEFAULT now()
+  )
+`;
+
+await sql`CREATE UNIQUE INDEX IF NOT EXISTS "idx_chat_members_room_user" ON "chat_room_members"("room_id", "user_id")`;
+await sql`CREATE INDEX IF NOT EXISTS "idx_chat_members_user" ON "chat_room_members"("user_id")`;
+
+await sql`
+  CREATE TABLE IF NOT EXISTS "chat_messages" (
+    "id" uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    "room_id" uuid NOT NULL REFERENCES "chat_rooms"("id") ON DELETE CASCADE,
+    "user_id" text NOT NULL,
+    "content" text,
+    "attachment_url" text,
+    "attachment_name" text,
+    "parent_message_id" uuid,
+    "is_edited" boolean NOT NULL DEFAULT false,
+    "is_deleted" boolean NOT NULL DEFAULT false,
+    "created_at" timestamp DEFAULT now(),
+    "updated_at" timestamp DEFAULT now()
+  )
+`;
+
+await sql`CREATE INDEX IF NOT EXISTS "idx_chat_messages_room" ON "chat_messages"("room_id")`;
+await sql`CREATE INDEX IF NOT EXISTS "idx_chat_messages_parent" ON "chat_messages"("parent_message_id")`;
+await sql`CREATE INDEX IF NOT EXISTS "idx_chat_messages_room_created" ON "chat_messages"("room_id", "created_at")`;
+
+await sql`
+  CREATE TABLE IF NOT EXISTS "chat_reactions" (
+    "id" uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    "message_id" uuid NOT NULL REFERENCES "chat_messages"("id") ON DELETE CASCADE,
+    "user_id" text NOT NULL,
+    "emoji" text NOT NULL,
+    "created_at" timestamp DEFAULT now()
+  )
+`;
+
+await sql`CREATE UNIQUE INDEX IF NOT EXISTS "idx_chat_reactions_unique" ON "chat_reactions"("message_id", "user_id", "emoji")`;
+await sql`CREATE INDEX IF NOT EXISTS "idx_chat_reactions_message" ON "chat_reactions"("message_id")`;
+
+console.log("Migration complete: users + documents + document_permissions + invitations + chat tables ready");
 
 await sql.end();

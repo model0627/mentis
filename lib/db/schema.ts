@@ -64,6 +64,92 @@ export const documentPermissions = pgTable(
   })
 );
 
+// ── Chat tables ─────────────────────────────────────────────
+export const chatRooms = pgTable(
+  "chat_rooms",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    type: text("type").notNull(), // "page" | "dm"
+    documentId: uuid("document_id").references(() => documents.id, {
+      onDelete: "cascade",
+    }),
+    slug: text("slug").notNull().unique(),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    slugIdx: uniqueIndex("idx_chat_rooms_slug").on(table.slug),
+    documentIdx: index("idx_chat_rooms_document").on(table.documentId),
+  })
+);
+
+export const chatRoomMembers = pgTable(
+  "chat_room_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => chatRooms.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(),
+    lastReadAt: timestamp("last_read_at"),
+    joinedAt: timestamp("joined_at").defaultNow(),
+  },
+  (table) => ({
+    roomUserUnique: uniqueIndex("idx_chat_members_room_user").on(
+      table.roomId,
+      table.userId
+    ),
+    userIdx: index("idx_chat_members_user").on(table.userId),
+  })
+);
+
+export const chatMessages = pgTable(
+  "chat_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => chatRooms.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(),
+    content: text("content"),
+    attachmentUrl: text("attachment_url"),
+    attachmentName: text("attachment_name"),
+    parentMessageId: uuid("parent_message_id"),
+    isEdited: boolean("is_edited").notNull().default(false),
+    isDeleted: boolean("is_deleted").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    roomIdx: index("idx_chat_messages_room").on(table.roomId),
+    parentIdx: index("idx_chat_messages_parent").on(table.parentMessageId),
+    roomCreatedIdx: index("idx_chat_messages_room_created").on(
+      table.roomId,
+      table.createdAt
+    ),
+  })
+);
+
+export const chatReactions = pgTable(
+  "chat_reactions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => chatMessages.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(),
+    emoji: text("emoji").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    msgUserEmojiUnique: uniqueIndex("idx_chat_reactions_unique").on(
+      table.messageId,
+      table.userId,
+      table.emoji
+    ),
+    messageIdx: index("idx_chat_reactions_message").on(table.messageId),
+  })
+);
+
 export const invitations = pgTable("invitations", {
   id: uuid("id").defaultRandom().primaryKey(),
   token: text("token").notNull().unique(),

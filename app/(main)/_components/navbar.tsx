@@ -11,6 +11,7 @@ import { Publish } from "./publish";
 import { Collaborators } from "./collaborators";
 import { Button } from "@/components/ui/button";
 import { usePermissionsModal } from "@/hooks/use-permissions-modal";
+import { ChatPageButton } from "@/components/chat/chat-page-button";
 
 interface NavbarProps {
     isCollapsed: boolean;
@@ -99,6 +100,9 @@ export const Navbar = ({
                             >
                                 <Shield className="h-4 w-4" />
                             </Button>
+                        )}
+                        {isShared && (
+                            <ChatPageButton documentId={document.id} />
                         )}
                         <Publish initialData={document} />
                         <Menu documentId={document.id} workspace={document.workspace} />

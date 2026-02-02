@@ -32,6 +32,7 @@ function send(conn, message) {
 
 const messageSync = 0;
 const messageAwareness = 1;
+const messageChat = 2;
 
 function handleMessage(conn, doc, message) {
   try {
@@ -61,6 +62,18 @@ function handleMessage(conn, doc, message) {
       case messageAwareness: {
         const update = decoding.readVarUint8Array(decoder);
         awarenessProtocol.applyAwarenessUpdate(doc.awareness, update, conn);
+        break;
+      }
+      case messageChat: {
+        // Read the raw chat payload and broadcast to all other clients in the same room
+        const payload = decoding.readVarUint8Array(decoder);
+        const broadcastEncoder = encoding.createEncoder();
+        encoding.writeVarUint(broadcastEncoder, messageChat);
+        encoding.writeVarUint8Array(broadcastEncoder, payload);
+        const broadcastMsg = encoding.toUint8Array(broadcastEncoder);
+        doc.conns.forEach((_, c) => {
+          if (c !== conn) send(c, broadcastMsg);
+        });
         break;
       }
     }

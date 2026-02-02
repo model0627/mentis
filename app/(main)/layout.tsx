@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { Navigation } from "./_components/navigation";
 import { SearchCommand } from "./_components/search-command";
+import { ChatWidget } from "@/components/chat/chat-widget";
 
 const MainLayout = ({ children }: {
     children: React.ReactNode;
@@ -30,6 +31,7 @@ const MainLayout = ({ children }: {
                 <SearchCommand />
                 {children}
             </main>
+            <ChatWidget />
         </div>
     )
 }
