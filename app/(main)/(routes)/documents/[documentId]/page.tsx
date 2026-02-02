@@ -73,7 +73,7 @@ const DocumentIdPage = ({
     return (
         <div className={`pb-40 ${document.smallText ? "text-sm" : ""}`}>
             <Cover url={document.coverImage ?? undefined} />
-            <div className="h-[35vh]" />
+            <div className="h-[10vh]" />
             <div className={document.fullWidth ? "mx-auto px-12" : "md:max-w-3xl lg:max-w-4xl mx-auto"}>
                 <Toolbar initialData={document} editable={canEditDoc} titleText={titleText} />
                 <Editor
