@@ -9,6 +9,7 @@ import { Banner } from "./banner";
 import { Menu } from "./menu";
 import { Publish } from "./publish";
 import { Collaborators } from "./collaborators";
+import { ActiveEditorsBanner } from "./active-editors-banner";
 import { Button } from "@/components/ui/button";
 import { usePermissionsModal } from "@/hooks/use-permissions-modal";
 import { ChatPageButton } from "@/components/chat/chat-page-button";
@@ -109,6 +110,7 @@ export const Navbar = ({
                     </div>
                 </div>
             </nav>
+            <ActiveEditorsBanner />
             {document.isArchived && (
                 <Banner documentId={document.id} />
             )}

@@ -109,6 +109,12 @@ const ko = {
   timeMinutesAgo: (n: number) => `${n}분 전`,
   timeHoursAgo: (n: number) => `${n}시간 전`,
   timeDaysAgo: (n: number) => `${n}일 전`,
+  statusOnline: "온라인",
+  statusAway: "자리 비움",
+  statusOffline: "오프라인",
+  editingNow: "편집 중",
+  activeEditors: (n: number) => `${n}명이 편집 중`,
+  viewAllCollaborators: "모든 협업자 보기",
 } as const;
 
 type ChatDict = { [K in keyof typeof ko]: (typeof ko)[K] extends (...args: infer A) => string ? (...args: A) => string : string };
@@ -222,6 +228,12 @@ const en: ChatDict = {
   timeMinutesAgo: (n: number) => `${n}m ago`,
   timeHoursAgo: (n: number) => `${n}h ago`,
   timeDaysAgo: (n: number) => `${n}d ago`,
+  statusOnline: "Online",
+  statusAway: "Away",
+  statusOffline: "Offline",
+  editingNow: "Editing",
+  activeEditors: (n: number) => `${n} ${n === 1 ? "person" : "people"} editing`,
+  viewAllCollaborators: "View all collaborators",
 };
 
 const dictionaries = { ko, en } as const;

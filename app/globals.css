@@ -156,3 +156,106 @@ body,
     @apply bg-background text-foreground;
   }
 }
+
+/* ===== Collaboration cursor styles (y-prosemirror / BlockNote) ===== */
+
+/* Remote user text selection highlight */
+.yRemoteSelection {
+  opacity: 0.35;
+}
+
+/* Remote cursor head — the vertical caret line */
+.yRemoteSelectionHead {
+  position: absolute;
+  border-left: 2.5px solid var(--user-color, orange);
+  border-top: none;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Name label that appears above the cursor */
+.yRemoteSelectionHead::after {
+  content: attr(data-user);
+  position: absolute;
+  left: -1px;
+  bottom: 100%;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 2px 6px;
+  border-radius: 4px 4px 4px 0;
+  color: #fff;
+  background-color: var(--user-color, orange);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+/* TipTap / BlockNote collaboration-cursor extension */
+.collaboration-cursor__caret {
+  position: relative;
+  border-left: 2.5px solid var(--user-color, orange);
+  margin-left: -1px;
+  margin-right: -1px;
+  pointer-events: none;
+  word-break: normal;
+}
+
+.collaboration-cursor__label {
+  position: absolute;
+  left: -1px;
+  bottom: 100%;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  line-height: 1;
+  white-space: nowrap;
+  padding: 2px 6px;
+  border-radius: 4px 4px 4px 0;
+  color: #fff;
+  user-select: none;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 4s ease;
+}
+
+.collaboration-cursor__label:hover,
+.collaboration-cursor__caret:hover .collaboration-cursor__label {
+  opacity: 1 !important;
+  transition: opacity 0.1s ease;
+}
+
+/* ProseMirror widget decoration cursors (BlockNote variant) */
+.ProseMirror .collaboration-cursor__caret {
+  border-left-width: 2.5px;
+}
+
+.ProseMirror .collaboration-cursor__label {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px 4px 4px 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Pulse animation on remote cursor for recent activity */
+@keyframes cursor-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.yRemoteSelectionHead,
+.collaboration-cursor__caret {
+  animation: cursor-pulse 1.2s ease-in-out infinite;
+}
+
+/* Dark mode adjustments for selection visibility */
+.dark .yRemoteSelection {
+  opacity: 0.3;
+}
+
+.dark .collaboration-cursor__label,
+.dark .yRemoteSelectionHead::after {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
