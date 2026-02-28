@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
-import { ChevronsLeft, Globe, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
+import { ChevronsLeft, Clock, Globe, MenuIcon, Plus, PlusCircle, Search, Settings, Star, Trash } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
@@ -17,6 +17,8 @@ import { UserItem } from "./user-item";
 import { Item } from "./item";
 import { toast } from "sonner";
 import { DocumentList } from "./document-list";
+import { FavoritesList } from "./favorites-list";
+import { RecentDocsList } from "./recent-docs-list";
 import { TrashBox } from "./trash-box";
 import { Navbar } from "./navbar";
 
@@ -136,6 +138,22 @@ export const Navigation = () => {
                     <UserItem />
                     <Item label="Search" icon={Search} isSearch onClick={search.onOpen}  />
                     <Item label="Settings" icon={Settings} onClick={settings.onOpen}  />
+                </div>
+                <div className="mt-4">
+                    <div className="px-3 py-1">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            Favorites
+                        </p>
+                    </div>
+                    <FavoritesList />
+                </div>
+                <div className="mt-4">
+                    <div className="px-3 py-1">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            Recent
+                        </p>
+                    </div>
+                    <RecentDocsList />
                 </div>
                 <div className="mt-4">
                     <div className="px-3 py-1">

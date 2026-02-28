@@ -291,3 +291,12 @@ body,
   animation: jump-highlight-pulse 0.8s ease-in-out 2;
   z-index: 50;
 }
+
+/* ===== Drag and drop sidebar styles ===== */
+[draggable="true"] {
+  cursor: grab;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}

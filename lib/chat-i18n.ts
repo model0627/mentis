@@ -147,6 +147,19 @@ const ko = {
   noVersions: "아직 버전이 없습니다",
   restore: "복원",
   versionSaved: "자동 저장됨",
+
+  // favorites
+  favorites: "즐겨찾기",
+  addToFavorites: "즐겨찾기에 추가",
+  removeFromFavorites: "즐겨찾기에서 제거",
+
+  // drag-and-drop
+  movingDocument: "문서 이동 중...",
+  documentMoved: "문서가 이동되었습니다!",
+  moveToRoot: "최상위로 이동",
+
+  // recent-docs
+  recentDocs: "최근 문서",
 } as const;
 
 type ChatDict = { [K in keyof typeof ko]: (typeof ko)[K] extends (...args: infer A) => string ? (...args: A) => string : string };
@@ -298,6 +311,19 @@ const en: ChatDict = {
   noVersions: "No versions yet",
   restore: "Restore",
   versionSaved: "Auto-saved",
+
+  // favorites
+  favorites: "Favorites",
+  addToFavorites: "Add to favorites",
+  removeFromFavorites: "Remove from favorites",
+
+  // drag-and-drop
+  movingDocument: "Moving document...",
+  documentMoved: "Document moved!",
+  moveToRoot: "Move to root",
+
+  // recent-docs
+  recentDocs: "Recent",
 };
 
 const dictionaries = { ko, en } as const;

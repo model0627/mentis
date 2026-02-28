@@ -11,6 +11,7 @@ import { useYjs } from "@/hooks/use-yjs";
 import { useSyncStatus } from "@/hooks/use-sync-status";
 import { useVersionHistory } from "@/hooks/use-version-history";
 import { useFocusMode } from "@/hooks/use-focus-mode";
+import { useRecentDocs } from "@/hooks/use-recent-docs";
 
 interface DocumentIdPageProps {
     params: Promise<{
@@ -116,6 +117,13 @@ const DocumentIdPage = ({
         );
         useVersionHistory.getState().clearRestore();
     }, [pendingRestore, documentId, updateMutation]);
+
+    // Record recent visit
+    useEffect(() => {
+        if (document && !document.isArchived) {
+            useRecentDocs.getState().addRecent(documentId);
+        }
+    }, [documentId, document?.isArchived]);
 
     if (isLoading) {
         return (

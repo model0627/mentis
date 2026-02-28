@@ -3,7 +3,8 @@
 import { Document } from "@/lib/types";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useSidebar } from "@/hooks/use-documents";
+import { useSidebar, useUpdateDocument } from "@/hooks/use-documents";
+import { toast } from "sonner";
 import { Item } from "./item";
 import { cn } from "@/lib/utils";
 import { FileIcon } from "lucide-react";
@@ -36,6 +37,47 @@ export const DocumentList = ({
         router.push(`/documents/${documentId}`);
     };
 
+    const updateMutation = useUpdateDocument();
+    const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+    const handleDragStart = (e: React.DragEvent, docId: string) => {
+        e.dataTransfer.setData("text/plain", docId);
+        e.dataTransfer.effectAllowed = "move";
+    };
+
+    const handleDragOver = (e: React.DragEvent, docId: string) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        setDragOverId(docId);
+    };
+
+    const handleDragLeave = () => {
+        setDragOverId(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, targetId: string) => {
+        e.preventDefault();
+        setDragOverId(null);
+        const sourceId = e.dataTransfer.getData("text/plain");
+        if (!sourceId || sourceId === targetId) return;
+
+        const promise = updateMutation.mutateAsync({
+            id: sourceId,
+            parentDocument: targetId,
+        });
+
+        toast.promise(promise, {
+            loading: "Moving document...",
+            success: "Document moved!",
+            error: "Failed to move document.",
+        });
+
+        // Auto-expand the target so user sees the moved doc
+        if (!expanded[targetId]) {
+            onExpand(targetId);
+        }
+    };
+
     if (isLoading) {
         return (
             <>
@@ -65,7 +107,15 @@ export const DocumentList = ({
             No pages inside
         </p>
         {documents?.map((document) => (
-            <div key={document.id}>
+            <div
+                key={document.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, document.id)}
+                onDragOver={(e) => handleDragOver(e, document.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, document.id)}
+                className={dragOverId === document.id ? "bg-primary/10 rounded-sm" : ""}
+            >
                 <Item
                     id={document.id}
                     onClick={() => onRedirect(document.id)}
@@ -87,6 +137,35 @@ export const DocumentList = ({
                 )}
             </div>
         ))}
+        {level === 0 && (
+            <div
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    setDragOverId("__root__");
+                }}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOverId(null);
+                    const sourceId = e.dataTransfer.getData("text/plain");
+                    if (!sourceId) return;
+                    const promise = updateMutation.mutateAsync({
+                        id: sourceId,
+                        parentDocument: null,
+                    });
+                    toast.promise(promise, {
+                        loading: "Moving to root...",
+                        success: "Moved to root!",
+                        error: "Failed to move document.",
+                    });
+                }}
+                className={cn(
+                    "h-6 mx-2 my-1 rounded border-2 border-dashed border-transparent transition-colors",
+                    dragOverId === "__root__" && "border-primary/30 bg-primary/5"
+                )}
+            />
+        )}
     </>
     )
 }

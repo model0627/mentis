@@ -11,9 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import { useCreateDocument, useArchiveDocument } from "@/hooks/use-documents";
-import { ChevronDown, ChevronRight, Globe, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react";
+import { ChevronDown, ChevronRight, Globe, LucideIcon, MoreHorizontal, Plus, Star, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useFavorites } from "@/hooks/use-favorites";
 
 interface ItemProps {
     id?: string;
@@ -37,6 +38,13 @@ export const Item = ({
     const router = useRouter();
     const createMutation = useCreateDocument();
     const archiveMutation = useArchiveDocument();
+    const favorites = useFavorites();
+    const isFav = id ? favorites.isFavorite(id) : false;
+
+    const handleToggleFavorite = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (id) favorites.toggle(id);
+    };
 
     const onArchive = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -121,6 +129,16 @@ export const Item = ({
             )}
             {!!id && (
                 <div className="ml-auto flex items-center gap-x-2">
+                    <div
+                        role="button"
+                        onClick={handleToggleFavorite}
+                        className="opacity-0 group-hover:opacity-100 h-full rounded-sm hover:bg-accent"
+                    >
+                        <Star className={cn(
+                            "h-4 w-4",
+                            isFav ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
+                        )} />
+                    </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger
                             onClick={(e) => e.stopPropagation()}
