@@ -8,11 +8,14 @@ export interface PresenceUser {
     lastSeen: number; // timestamp ms
 }
 
+export type PresenceStatus = "online" | "away" | "offline";
+
 /** Deduplicated user (by account name) for display */
 export interface PresenceAccount {
     name: string;
     color: string;
     lastSeen: number;
+    status: PresenceStatus;
 }
 
 type PresenceStore = {
@@ -22,6 +25,13 @@ type PresenceStore = {
     setUsers: (users: PresenceUser[]) => void;
     clear: () => void;
 };
+
+function getStatus(lastSeen: number): PresenceStatus {
+    const elapsed = Date.now() - lastSeen;
+    if (elapsed < 2 * 60 * 1000) return "online";   // < 2 min
+    if (elapsed < 10 * 60 * 1000) return "away";     // < 10 min
+    return "offline";
+}
 
 function deduplicateByAccount(users: PresenceUser[]): PresenceAccount[] {
     const map = new Map<string, PresenceAccount>();
@@ -33,6 +43,7 @@ function deduplicateByAccount(users: PresenceUser[]): PresenceAccount[] {
                 name: u.name,
                 color: u.color,
                 lastSeen: u.lastSeen,
+                status: getStatus(u.lastSeen),
             });
         }
     }
