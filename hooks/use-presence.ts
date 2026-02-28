@@ -6,6 +6,7 @@ export interface PresenceUser {
     color: string;
     userId?: string;
     lastSeen: number; // timestamp ms
+    isTyping?: boolean;
 }
 
 export type PresenceStatus = "online" | "away" | "offline";
@@ -16,6 +17,7 @@ export interface PresenceAccount {
     color: string;
     lastSeen: number;
     status: PresenceStatus;
+    isTyping?: boolean;
 }
 
 type PresenceStore = {
@@ -44,7 +46,10 @@ function deduplicateByAccount(users: PresenceUser[]): PresenceAccount[] {
                 color: u.color,
                 lastSeen: u.lastSeen,
                 status: getStatus(u.lastSeen),
+                isTyping: existing?.isTyping || u.isTyping || false,
             });
+        } else if (u.isTyping) {
+            existing.isTyping = true;
         }
     }
     return Array.from(map.values());

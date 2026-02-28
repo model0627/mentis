@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, type KeyboardEvent } from "react";
+import { useState, useRef, useCallback, useEffect, type KeyboardEvent } from "react";
 import { Send, Paperclip, X } from "lucide-react";
 import { useChatT } from "@/hooks/use-chat-t";
 
 interface ChatInputProps {
   onSend: (content: string) => void;
   onSendAttachment?: (url: string, name: string) => void;
+  onTypingChange?: (isTyping: boolean) => void;
   placeholder?: string;
   disabled?: boolean;
 }
@@ -14,6 +15,7 @@ interface ChatInputProps {
 export const ChatInput = ({
   onSend,
   onSendAttachment,
+  onTypingChange,
   placeholder,
   disabled,
 }: ChatInputProps) => {
@@ -27,9 +29,45 @@ export const ChatInput = ({
   } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
+
+  const stopTyping = useCallback(() => {
+    if (typingTimerRef.current) {
+      clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = null;
+    }
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      onTypingChange?.(false);
+    }
+  }, [onTypingChange]);
+
+  const handleTyping = useCallback(() => {
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      onTypingChange?.(true);
+    }
+    if (typingTimerRef.current) {
+      clearTimeout(typingTimerRef.current);
+    }
+    typingTimerRef.current = setTimeout(() => {
+      stopTyping();
+    }, 3000);
+  }, [onTypingChange, stopTyping]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimerRef.current) {
+        clearTimeout(typingTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleSend = () => {
     const trimmed = value.trim();
+    stopTyping();
     if (pendingFile) {
       onSendAttachment?.(pendingFile.url, pendingFile.name);
       setPendingFile(null);
@@ -115,7 +153,7 @@ export const ChatInput = ({
         <textarea
           ref={textareaRef}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => { setValue(e.target.value); handleTyping(); }}
           onKeyDown={handleKeyDown}
           onInput={handleInput}
           placeholder={pendingFile ? t.pressEnterToSendFile : resolvedPlaceholder}

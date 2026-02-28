@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useCallback, useRef, use } from "react";
 import { useSession } from "next-auth/react";
 import { useYjs } from "@/hooks/use-yjs";
+import { useSyncStatus } from "@/hooks/use-sync-status";
 
 interface DocumentIdPageProps {
     params: Promise<{
@@ -24,9 +25,10 @@ const DocumentIdPage = ({
     const updateMutation = useUpdateDocument();
     const { data: session } = useSession();
     const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+    const typingTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     const userId = session?.user?.id;
-    const { provider, fragment, titleText } = useYjs(documentId, session?.user?.name || undefined);
+    const { provider, fragment, titleText, setTyping } = useYjs(documentId, session?.user?.name || undefined);
 
     const canEditDoc = document
         ? document.isLocked
@@ -37,14 +39,29 @@ const DocumentIdPage = ({
         : false;
 
     const onChange = useCallback((content: string) => {
+        setTyping(true);
+        if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+        typingTimerRef.current = setTimeout(() => setTyping(false), 3000);
+
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
         saveTimerRef.current = setTimeout(() => {
-            updateMutation.mutate({
-                id: documentId,
-                content
-            });
+            useSyncStatus.getState().setSaving();
+            updateMutation.mutate(
+                {
+                    id: documentId,
+                    content
+                },
+                {
+                    onSuccess: () => {
+                        useSyncStatus.getState().setSaved();
+                    },
+                    onError: () => {
+                        useSyncStatus.getState().setOffline();
+                    },
+                }
+            );
         }, 2000);
-    }, [documentId, updateMutation]);
+    }, [documentId, updateMutation, setTyping]);
 
     if (isLoading) {
         return (

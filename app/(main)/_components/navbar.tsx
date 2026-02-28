@@ -1,9 +1,10 @@
 "use client";
 
 import { useDocument, useBreadcrumbs } from "@/hooks/use-documents";
-import { ChevronRight, Lock, MenuIcon, Shield } from "lucide-react";
+import { Activity, ChevronRight, Lock, MenuIcon, Shield } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 import { Title } from "./title";
 import { Banner } from "./banner";
 import { Menu } from "./menu";
@@ -13,6 +14,9 @@ import { ActiveEditorsBanner } from "./active-editors-banner";
 import { Button } from "@/components/ui/button";
 import { usePermissionsModal } from "@/hooks/use-permissions-modal";
 import { ChatPageButton } from "@/components/chat/chat-page-button";
+import { SyncStatus } from "./sync-status";
+import { TypingIndicator } from "./typing-indicator";
+import { ActivityLog } from "./activity-log";
 
 interface NavbarProps {
     isCollapsed: boolean;
@@ -26,6 +30,7 @@ export const Navbar = ({
     const params = useParams();
     const { data: session } = useSession();
     const permissionsModal = usePermissionsModal();
+    const [activityLogOpen, setActivityLogOpen] = useState(false);
 
     const router = useRouter();
     const documentId = params.documentId as string;
@@ -87,6 +92,7 @@ export const Navbar = ({
                             </div>
                         )}
                         <Title initialData={document} editable={canEditDoc} />
+                        <SyncStatus />
                     </div>
                     <div className="flex items-center gap-x-2">
                         {document.isLocked && (
@@ -103,6 +109,15 @@ export const Navbar = ({
                             </Button>
                         )}
                         {isShared && (
+                            <Button
+                                onClick={() => setActivityLogOpen(true)}
+                                variant="ghost"
+                                size="sm"
+                            >
+                                <Activity className="h-4 w-4" />
+                            </Button>
+                        )}
+                        {isShared && (
                             <ChatPageButton documentId={document.id} />
                         )}
                         <Publish initialData={document} />
@@ -111,9 +126,14 @@ export const Navbar = ({
                 </div>
             </nav>
             <ActiveEditorsBanner />
+            <TypingIndicator />
             {document.isArchived && (
                 <Banner documentId={document.id} />
             )}
+            <ActivityLog
+                isOpen={activityLogOpen}
+                onClose={() => setActivityLogOpen(false)}
+            />
         </>
     )
 }

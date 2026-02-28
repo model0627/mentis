@@ -104,6 +104,9 @@ const ko = {
   defaultUserName: "사용자",
   workspaceName: (name: string) => `${name}의 Mentis`,
 
+  // typing indicator
+  typingIndicator: (names: string) => `${names} 입력 중...`,
+
   // collaborators
   timeJustNow: "방금 전",
   timeMinutesAgo: (n: number) => `${n}분 전`,
@@ -115,6 +118,23 @@ const ko = {
   editingNow: "편집 중",
   activeEditors: (n: number) => `${n}명이 편집 중`,
   viewAllCollaborators: "모든 협업자 보기",
+
+  // sync-status
+  syncSaved: "저장됨",
+  syncSaving: "저장 중...",
+  syncOffline: "오프라인",
+  syncSyncing: "동기화 중...",
+
+  // activity-log
+  activityLog: "활동 로그",
+  activityJoined: "문서에 참여했습니다",
+  activityLeft: "문서를 떠났습니다",
+  activityStartedEditing: "편집을 시작했습니다",
+  activityStoppedEditing: "편집을 멈췄습니다",
+  noActivity: "아직 활동이 없습니다",
+  activityToday: "오늘",
+  activityYesterday: "어제",
+  activityEarlier: "이전",
 } as const;
 
 type ChatDict = { [K in keyof typeof ko]: (typeof ko)[K] extends (...args: infer A) => string ? (...args: A) => string : string };
@@ -223,6 +243,9 @@ const en: ChatDict = {
   defaultUserName: "User",
   workspaceName: (name: string) => `${name}'s Mentis`,
 
+  // typing indicator
+  typingIndicator: (names: string) => `${names} typing...`,
+
   // collaborators
   timeJustNow: "just now",
   timeMinutesAgo: (n: number) => `${n}m ago`,
@@ -234,6 +257,23 @@ const en: ChatDict = {
   editingNow: "Editing",
   activeEditors: (n: number) => `${n} ${n === 1 ? "person" : "people"} editing`,
   viewAllCollaborators: "View all collaborators",
+
+  // sync-status
+  syncSaved: "Saved",
+  syncSaving: "Saving...",
+  syncOffline: "Offline",
+  syncSyncing: "Syncing...",
+
+  // activity-log
+  activityLog: "Activity log",
+  activityJoined: "joined the document",
+  activityLeft: "left the document",
+  activityStartedEditing: "started editing",
+  activityStoppedEditing: "stopped editing",
+  noActivity: "No activity yet",
+  activityToday: "Today",
+  activityYesterday: "Yesterday",
+  activityEarlier: "Earlier",
 };
 
 const dictionaries = { ko, en } as const;
