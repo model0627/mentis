@@ -1,7 +1,7 @@
 "use client";
 
 import { useDocument, useBreadcrumbs } from "@/hooks/use-documents";
-import { Activity, ChevronRight, Lock, MenuIcon, Shield } from "lucide-react";
+import { Activity, ChevronRight, Clock, Focus, Lock, MenuIcon, Shield } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -17,6 +17,10 @@ import { ChatPageButton } from "@/components/chat/chat-page-button";
 import { SyncStatus } from "./sync-status";
 import { TypingIndicator } from "./typing-indicator";
 import { ActivityLog } from "./activity-log";
+import { VersionHistory } from "./version-history";
+import { useVersionHistory } from "@/hooks/use-version-history";
+import { useFocusMode } from "@/hooks/use-focus-mode";
+import { useChatT } from "@/hooks/use-chat-t";
 
 interface NavbarProps {
     isCollapsed: boolean;
@@ -31,6 +35,9 @@ export const Navbar = ({
     const { data: session } = useSession();
     const permissionsModal = usePermissionsModal();
     const [activityLogOpen, setActivityLogOpen] = useState(false);
+    const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
+    const focusModeEnabled = useFocusMode((s) => s.enabled);
+    const t = useChatT();
 
     const router = useRouter();
     const documentId = params.documentId as string;
@@ -98,7 +105,15 @@ export const Navbar = ({
                         {document.isLocked && (
                             <Lock className="h-4 w-4 text-muted-foreground" />
                         )}
-                        <Collaborators />
+                        <Button
+                            onClick={() => useFocusMode.getState().toggle()}
+                            variant={focusModeEnabled ? "default" : "ghost"}
+                            size="sm"
+                            title={focusModeEnabled ? t.focusModeOn : t.focusModeOff}
+                        >
+                            <Focus className="h-4 w-4" />
+                        </Button>
+                        {!focusModeEnabled && <Collaborators />}
                         {canManage && (
                             <Button
                                 onClick={() => permissionsModal.onOpen(document.id)}
@@ -117,6 +132,13 @@ export const Navbar = ({
                                 <Activity className="h-4 w-4" />
                             </Button>
                         )}
+                        <Button
+                            onClick={() => setVersionHistoryOpen(true)}
+                            variant="ghost"
+                            size="sm"
+                        >
+                            <Clock className="h-4 w-4" />
+                        </Button>
                         {isShared && (
                             <ChatPageButton documentId={document.id} />
                         )}
@@ -125,14 +147,31 @@ export const Navbar = ({
                     </div>
                 </div>
             </nav>
-            <ActiveEditorsBanner />
-            <TypingIndicator />
+            {focusModeEnabled ? (
+                <div className="flex items-center justify-center gap-x-2 px-4 py-1.5 bg-primary/10 border-b border-primary/20 text-xs text-primary">
+                    <Focus className="h-3.5 w-3.5" />
+                    <span>{t.focusModeActive}</span>
+                </div>
+            ) : (
+                <>
+                    <ActiveEditorsBanner />
+                    <TypingIndicator />
+                </>
+            )}
             {document.isArchived && (
                 <Banner documentId={document.id} />
             )}
             <ActivityLog
                 isOpen={activityLogOpen}
                 onClose={() => setActivityLogOpen(false)}
+            />
+            <VersionHistory
+                isOpen={versionHistoryOpen}
+                onClose={() => setVersionHistoryOpen(false)}
+                onRestore={(content) => {
+                    useVersionHistory.getState().requestRestore(content);
+                    setVersionHistoryOpen(false);
+                }}
             />
         </>
     )

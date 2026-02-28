@@ -271,3 +271,23 @@ body,
   font-size: 10px;
   animation: typing-bounce 1.4s ease-in-out infinite;
 }
+
+/* ===== Focus mode: hide collaboration UI ===== */
+.focus-mode .yRemoteSelection,
+.focus-mode .yRemoteSelectionHead,
+.focus-mode .collaboration-cursor__caret,
+.focus-mode .collaboration-cursor__label {
+  display: none !important;
+}
+
+/* ===== Jump to collaborator highlight ===== */
+@keyframes jump-highlight-pulse {
+  0% { box-shadow: 0 0 0 0 var(--user-color, orange); }
+  50% { box-shadow: 0 0 12px 4px var(--user-color, orange); }
+  100% { box-shadow: 0 0 0 0 var(--user-color, orange); }
+}
+
+.jump-highlight {
+  animation: jump-highlight-pulse 0.8s ease-in-out 2;
+  z-index: 50;
+}

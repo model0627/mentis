@@ -13,6 +13,7 @@ export type PresenceStatus = "online" | "away" | "offline";
 
 /** Deduplicated user (by account name) for display */
 export interface PresenceAccount {
+    clientId: number;
     name: string;
     color: string;
     lastSeen: number;
@@ -42,6 +43,7 @@ function deduplicateByAccount(users: PresenceUser[]): PresenceAccount[] {
         const existing = map.get(key);
         if (!existing || u.lastSeen > existing.lastSeen) {
             map.set(key, {
+                clientId: u.clientId,
                 name: u.name,
                 color: u.color,
                 lastSeen: u.lastSeen,

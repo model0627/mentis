@@ -1,10 +1,11 @@
 "use client";
 
 import { usePresence, type PresenceStatus } from "@/hooks/use-presence";
+import { useJumpToUser } from "@/hooks/use-jump-to-user";
 import { useChatT } from "@/hooks/use-chat-t";
 import type { ChatTranslations } from "@/lib/chat-i18n";
 import { useState } from "react";
-import { Eye, Users } from "lucide-react";
+import { Eye, MousePointerClick, Users } from "lucide-react";
 
 function formatTimeAgo(timestamp: number, t: ChatTranslations): string {
     const diff = Date.now() - timestamp;
@@ -40,8 +41,15 @@ function statusLabel(status: PresenceStatus, t: ChatTranslations): string {
 
 export const Collaborators = () => {
     const accounts = usePresence((s) => s.accounts);
+    const triggerJump = useJumpToUser((s) => s.trigger);
     const t = useChatT();
     const [showPanel, setShowPanel] = useState(false);
+
+    const handleJumpToUser = (account: { clientId: number; status: string }) => {
+        if (account.status === "online") {
+            triggerJump(account.clientId);
+        }
+    };
 
     if (accounts.length === 0) return null;
 
@@ -66,14 +74,16 @@ export const Collaborators = () => {
                     <div
                         key={account.name}
                         className="relative group"
+                        onClick={() => handleJumpToUser(account)}
                     >
                         {/* Avatar */}
                         <div className="relative">
                             <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold ring-2 ring-background cursor-default transition-transform hover:scale-110 hover:z-10 ${
-                                    account.status === "online" ? "shadow-md" : "opacity-80"
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold ring-2 ring-background transition-transform hover:scale-110 hover:z-10 ${
+                                    account.status === "online" ? "shadow-md cursor-pointer" : "opacity-80 cursor-default"
                                 }`}
                                 style={{ backgroundColor: account.color }}
+                                title={account.status === "online" ? t.jumpToUser : undefined}
                             >
                                 {account.name.charAt(0).toUpperCase()}
                             </div>
@@ -114,6 +124,12 @@ export const Collaborators = () => {
                                         </span>
                                     )}
                                 </div>
+                                {account.status === "online" && (
+                                    <div className="mt-1.5 pt-1.5 border-t flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
+                                        <MousePointerClick className="h-3 w-3" />
+                                        <span>{t.jumpToUser}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -154,7 +170,10 @@ export const Collaborators = () => {
                             {accounts.map((account) => (
                                 <div
                                     key={account.name}
-                                    className="flex items-center gap-x-3 px-3 py-2 hover:bg-accent/50 transition-colors"
+                                    className={`flex items-center gap-x-3 px-3 py-2 hover:bg-accent/50 transition-colors ${
+                                        account.status === "online" ? "cursor-pointer" : ""
+                                    }`}
+                                    onClick={() => handleJumpToUser(account)}
                                 >
                                     <div className="relative shrink-0">
                                         <div
@@ -175,8 +194,8 @@ export const Collaborators = () => {
                                     </div>
                                     {account.status === "online" && (
                                         <span className="flex items-center gap-x-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium shrink-0">
-                                            <Eye className="h-3 w-3" />
-                                            {t.editingNow}
+                                            <MousePointerClick className="h-3 w-3" />
+                                            {t.jumpToUser}
                                         </span>
                                     )}
                                 </div>

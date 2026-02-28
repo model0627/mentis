@@ -6,6 +6,7 @@ import { WebsocketProvider } from "y-websocket";
 import { usePresence, PresenceUser } from "@/hooks/use-presence";
 import { useSyncStatus } from "@/hooks/use-sync-status";
 import { useActivityLog } from "@/hooks/use-activity-log";
+import { useFocusMode } from "@/hooks/use-focus-mode";
 
 const COLORS = [
   "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4",
@@ -41,6 +42,7 @@ export function useYjs(documentId: string, userName?: string, userColor?: string
       color: colorRef.current,
       lastSeen: Date.now(),
       isTyping: false,
+      focusMode: false,
     });
 
     return { doc: yDoc, provider: yProvider, fragment: yFragment, titleText: yTitle };
@@ -63,6 +65,7 @@ export function useYjs(documentId: string, userName?: string, userColor?: string
         color: colorRef.current,
         lastSeen: Date.now(),
         isTyping: current?.user?.isTyping || false,
+        focusMode: useFocusMode.getState().enabled,
       });
     }, 30_000);
 
@@ -169,5 +172,17 @@ export function useYjs(documentId: string, userName?: string, userColor?: string
     [provider],
   );
 
-  return { doc, provider, fragment, titleText, setTyping };
+  const setFocusMode = useCallback(
+    (focusMode: boolean) => {
+      if (!provider) return;
+      const current = provider.awareness.getLocalState();
+      provider.awareness.setLocalStateField("user", {
+        ...current?.user,
+        focusMode,
+      });
+    },
+    [provider],
+  );
+
+  return { doc, provider, fragment, titleText, setTyping, setFocusMode };
 }

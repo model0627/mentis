@@ -5,10 +5,12 @@ import { useDocument, useUpdateDocument } from "@/hooks/use-documents";
 import { Toolbar } from "@/components/toolbar";
 import { Cover } from "@/components/cover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMemo, useCallback, useRef, use } from "react";
+import { useMemo, useCallback, useRef, useEffect, use } from "react";
 import { useSession } from "next-auth/react";
 import { useYjs } from "@/hooks/use-yjs";
 import { useSyncStatus } from "@/hooks/use-sync-status";
+import { useVersionHistory } from "@/hooks/use-version-history";
+import { useFocusMode } from "@/hooks/use-focus-mode";
 
 interface DocumentIdPageProps {
     params: Promise<{
@@ -28,6 +30,7 @@ const DocumentIdPage = ({
     const typingTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     const userId = session?.user?.id;
+    const focusModeEnabled = useFocusMode((s) => s.enabled);
     const { provider, fragment, titleText, setTyping } = useYjs(documentId, session?.user?.name || undefined);
 
     const canEditDoc = document
@@ -54,6 +57,35 @@ const DocumentIdPage = ({
                 {
                     onSuccess: () => {
                         useSyncStatus.getState().setSaved();
+
+                        // Capture a version snapshot
+                        let contentPreview = "";
+                        try {
+                            const blocks = JSON.parse(content);
+                            if (Array.isArray(blocks)) {
+                                const textParts: string[] = [];
+                                for (const block of blocks) {
+                                    if (block.content && Array.isArray(block.content)) {
+                                        for (const item of block.content) {
+                                            if (item.text) textParts.push(item.text);
+                                        }
+                                    }
+                                    if (textParts.join(" ").length > 100) break;
+                                }
+                                contentPreview = textParts.join(" ").slice(0, 100);
+                            }
+                        } catch {
+                            contentPreview = content.slice(0, 100);
+                        }
+
+                        const currentUserName = session?.user?.name || "Anonymous";
+                        useVersionHistory.getState().addVersion({
+                            timestamp: Date.now(),
+                            userName: currentUserName,
+                            userColor: "#4ECDC4",
+                            contentPreview,
+                            contentSnapshot: content,
+                        });
                     },
                     onError: () => {
                         useSyncStatus.getState().setOffline();
@@ -61,7 +93,29 @@ const DocumentIdPage = ({
                 }
             );
         }, 2000);
-    }, [documentId, updateMutation, setTyping]);
+    }, [documentId, updateMutation, setTyping, session?.user?.name]);
+
+    // Handle restore from version history
+    const pendingRestore = useVersionHistory((s) => s.pendingRestore);
+    useEffect(() => {
+        if (!pendingRestore) return;
+        useSyncStatus.getState().setSaving();
+        updateMutation.mutate(
+            {
+                id: documentId,
+                content: pendingRestore,
+            },
+            {
+                onSuccess: () => {
+                    useSyncStatus.getState().setSaved();
+                },
+                onError: () => {
+                    useSyncStatus.getState().setOffline();
+                },
+            }
+        );
+        useVersionHistory.getState().clearRestore();
+    }, [pendingRestore, documentId, updateMutation]);
 
     if (isLoading) {
         return (
@@ -88,7 +142,7 @@ const DocumentIdPage = ({
     }
 
     return (
-        <div className={`pb-40 ${document.smallText ? "text-sm" : ""}`}>
+        <div className={`pb-40 ${document.smallText ? "text-sm" : ""} ${focusModeEnabled ? "focus-mode" : ""}`}>
             <Cover url={document.coverImage ?? undefined} />
             <div className="h-[10vh]" />
             <div className={document.fullWidth ? "mx-auto px-12" : "md:max-w-3xl lg:max-w-4xl mx-auto"}>

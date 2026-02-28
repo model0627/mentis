@@ -118,6 +118,7 @@ const ko = {
   editingNow: "편집 중",
   activeEditors: (n: number) => `${n}명이 편집 중`,
   viewAllCollaborators: "모든 협업자 보기",
+  jumpToUser: "커서 위치로 이동",
 
   // sync-status
   syncSaved: "저장됨",
@@ -135,6 +136,17 @@ const ko = {
   activityToday: "오늘",
   activityYesterday: "어제",
   activityEarlier: "이전",
+
+  // focus mode
+  focusModeOn: "집중 모드 켜기",
+  focusModeOff: "집중 모드 끄기",
+  focusModeActive: "집중 모드 활성 — 협업 UI가 숨겨져 있습니다",
+
+  // version-history
+  versionHistory: "버전 히스토리",
+  noVersions: "아직 버전이 없습니다",
+  restore: "복원",
+  versionSaved: "자동 저장됨",
 } as const;
 
 type ChatDict = { [K in keyof typeof ko]: (typeof ko)[K] extends (...args: infer A) => string ? (...args: A) => string : string };
@@ -257,6 +269,7 @@ const en: ChatDict = {
   editingNow: "Editing",
   activeEditors: (n: number) => `${n} ${n === 1 ? "person" : "people"} editing`,
   viewAllCollaborators: "View all collaborators",
+  jumpToUser: "Jump to cursor",
 
   // sync-status
   syncSaved: "Saved",
@@ -274,6 +287,17 @@ const en: ChatDict = {
   activityToday: "Today",
   activityYesterday: "Yesterday",
   activityEarlier: "Earlier",
+
+  // focus mode
+  focusModeOn: "Focus mode on",
+  focusModeOff: "Focus mode off",
+  focusModeActive: "Focus mode active — collaboration UI is hidden",
+
+  // version-history
+  versionHistory: "Version history",
+  noVersions: "No versions yet",
+  restore: "Restore",
+  versionSaved: "Auto-saved",
 };
 
 const dictionaries = { ko, en } as const;
